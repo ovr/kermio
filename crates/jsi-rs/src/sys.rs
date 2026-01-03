@@ -6,7 +6,8 @@ pub mod ffi {
 
         // JSI Runtime - the main execution context
         #[namespace = "facebook::jsi"]
-        type Runtime;
+        #[cxx_name = "Runtime"]
+        type JSIRuntime;
 
         // JSI Value types - using JSI prefix for internal FFI types
         #[namespace = "facebook::jsi"]
@@ -49,6 +50,7 @@ pub mod ffi {
         type JSIFunction;
 
         #[namespace = "facebook::jsi"]
-        type PropNameID;
+        #[cxx_name = "PropNameID"]
+        type JSIPropNameID;
     }
 }

@@ -84,8 +84,10 @@ impl Runtime {
     /// This method is only available when the `unsafe` feature is enabled.
     /// The caller must ensure proper synchronization when using the JSI API directly.
     #[cfg(feature = "unsafe")]
-    pub fn jsi(&mut self) -> &mut crate::jsi::Runtime {
-        unsafe { &mut *(self.jsi_runtime() as *mut crate::jsi::Runtime) }
+    pub fn jsi(&mut self) -> jsi_rs::Runtime {
+        unsafe {
+            jsi_rs::Runtime::from_raw(self.jsi_runtime() as *mut jsi_rs::sys::ffi::JSIRuntime)
+        }
     }
 
     /// Compile JavaScript source to Hermes bytecode.
