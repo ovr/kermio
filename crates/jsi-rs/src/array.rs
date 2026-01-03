@@ -10,10 +10,7 @@ pub struct JSArray {
 impl JSArray {
     /// Create a new JavaScript array with the specified length
     pub fn new(runtime: &mut JSRuntime, length: usize) -> Self {
-        let ptr = unsafe {
-            let runtime_ref = runtime.as_mut();
-            crate::sys::ffi::create_array(Pin::new_unchecked(runtime_ref), length)
-        };
+        let ptr = crate::sys::ffi::create_array(runtime.pin_mut(), length);
         Self { inner: ptr }
     }
 

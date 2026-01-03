@@ -1,48 +1,25 @@
+use std::pin::Pin;
+
 use crate::sys::ffi;
 
-/// Represents a JSI Runtime instance
-///
-/// This is a wrapper around the C++ facebook::jsi::Runtime class.
-/// The Runtime provides the main execution context for JavaScript.
+/// Wrapper around facebook::jsi::Runtime providing a safe Rust API
 pub struct JSRuntime {
-    // We store a raw pointer since we don't own the Runtime
-    // It's typically owned by the Hermes engine
     ptr: *mut ffi::JSIRuntime,
 }
 
 impl JSRuntime {
-    /// Create a JSRuntime wrapper from a raw pointer
-    ///
-    /// # Safety
-    /// The caller must ensure:
-    /// - The pointer is valid and points to a live Runtime
-    /// - The Runtime outlives this wrapper
-    /// - No other mutable references exist to the Runtime
     pub unsafe fn from_raw(ptr: *mut ffi::JSIRuntime) -> Self {
         Self { ptr }
     }
 
-    /// Get the raw pointer to the underlying Runtime
-    pub fn as_ptr(&self) -> *mut ffi::JSIRuntime {
+    pub(crate) fn pin_mut(&mut self) -> Pin<&mut ffi::JSIRuntime> {
+        unsafe { Pin::new_unchecked(&mut *self.ptr) }
+    }
+
+    /// Access the inner raw pointer for advanced usage
+    #[cfg(feature = "sys")]
+    pub fn inner(&self) -> *mut ffi::JSIRuntime {
         self.ptr
-    }
-
-    /// Get a reference to the underlying Runtime
-    ///
-    /// # Safety
-    /// The caller must ensure the Runtime is still valid
-    pub unsafe fn as_ref(&self) -> &ffi::JSIRuntime {
-        &*self.ptr
-    }
-
-    /// Get a mutable reference to the underlying Runtime
-    ///
-    /// # Safety
-    /// The caller must ensure:
-    /// - The Runtime is still valid
-    /// - No other references exist to the Runtime
-    pub unsafe fn as_mut(&mut self) -> &mut ffi::JSIRuntime {
-        &mut *self.ptr
     }
 }
 

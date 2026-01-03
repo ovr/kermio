@@ -10,10 +10,7 @@ pub struct JSObject {
 impl JSObject {
     /// Create a new empty JavaScript object
     pub fn new(runtime: &mut JSRuntime) -> Self {
-        let ptr = unsafe {
-            let runtime_ref = runtime.as_mut();
-            crate::sys::ffi::create_object(Pin::new_unchecked(runtime_ref))
-        };
+        let ptr = crate::sys::ffi::create_object(runtime.pin_mut());
         Self { inner: ptr }
     }
 
