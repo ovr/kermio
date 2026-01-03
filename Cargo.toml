@@ -1,0 +1,3 @@
+[workspace]
+members = ["crates/hermes-engine"]
+resolver = "2"

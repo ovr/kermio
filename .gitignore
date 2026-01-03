@@ -1,0 +1,11 @@
+/target
+.claude
+
+# Hermes build cache
+crates/hermes-engine/hermes-vendor/build/
+crates/hermes-engine/hermes-vendor/_build/
+crates/hermes-engine/hermes-vendor/CMakeFiles/
+crates/hermes-engine/hermes-vendor/CMakeCache.txt
+crates/hermes-engine/hermes-vendor/cmake-build-*
+crates/hermes-engine/hermes-vendor/**/*.a
+crates/hermes-engine/hermes-vendor/**/*.o
