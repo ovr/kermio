@@ -1,0 +1,12 @@
+--- a/tools/CMakeLists.txt
++++ b/tools/CMakeLists.txt
+@@ -15,8 +15,8 @@
+ add_subdirectory(emhermesc)
+-add_subdirectory(fuzzers)
++# add_subdirectory(fuzzers)
+ add_subdirectory(dependency-extractor)
+-add_subdirectory(hermes-parser)
++# add_subdirectory(hermes-parser)
+ add_subdirectory(shermes)
+ add_subdirectory(synth)
+ add_subdirectory(hcdp)

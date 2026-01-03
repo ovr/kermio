@@ -33,6 +33,13 @@ exclude = [
     "hermes-vendor/android/gradlew*",
     "hermes-vendor/external/esprima/test_fixtures/",
     "hermes-vendor/external/flowtest/",
+    "hermes-vendor/**/*.md",
+    "hermes-vendor/tools/hermes-parser/",
+    "hermes-vendor/tools/fuzzers/",
+    "hermes-vendor/unsupported/",
+    "hermes-vendor/lldb/",
+    "hermes-vendor/doc/",
+    "hermes-vendor/.claude/",
 ]
 
 [dependencies]
