@@ -1,6 +1,5 @@
 fn main() {
-    // Only compile the cxx bridge - no custom C++ code needed
-    // Just expose the JSI types from hermes-vendor/API/jsi
+    // Compile the cxx bridge (bridge.h contains inline functions)
     cxx_build::bridge("src/sys.rs")
         .flag_if_supported("-std=c++17")
         .flag_if_supported("-stdlib=libc++")
@@ -10,4 +9,5 @@ fn main() {
         .compile("jsi-rs");
 
     println!("cargo:rerun-if-changed=src/sys.rs");
+    println!("cargo:rerun-if-changed=src/bridge.h");
 }

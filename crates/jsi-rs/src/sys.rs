@@ -53,4 +53,12 @@ pub mod ffi {
         #[cxx_name = "PropNameID"]
         type JSIPropNameID;
     }
+
+    // Helper functions for creating JSI objects
+    unsafe extern "C++" {
+        include!("jsi-rs/src/bridge.h");
+
+        #[namespace = "jsi_rs"]
+        fn create_object(runtime: Pin<&mut JSIRuntime>) -> UniquePtr<JSIObject>;
+    }
 }
