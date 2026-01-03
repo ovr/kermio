@@ -230,6 +230,7 @@ dependencies = [
  "bindgen",
  "cc",
  "cmake",
+ "jsi-rs",
  "libc",
 ]
 

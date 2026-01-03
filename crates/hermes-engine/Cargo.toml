@@ -44,6 +44,11 @@ exclude = [
 
 [dependencies]
 libc = "0.2"
+jsi-rs = { path = "../jsi-rs" }
+
+[features]
+# Enable unsafe low-level JSI API access
+unsafe = []
 
 [build-dependencies]
 bindgen = "0.70"

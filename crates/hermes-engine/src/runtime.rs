@@ -97,6 +97,18 @@ impl Runtime {
         unsafe { hermes_runtime_get_jsi(self.handle) }
     }
 
+    /// Get a reference to the underlying JSI Runtime
+    ///
+    /// This provides access to the low-level JSI API for advanced use cases.
+    ///
+    /// # Safety
+    /// This method is only available when the `unsafe` feature is enabled.
+    /// The caller must ensure proper synchronization when using the JSI API directly.
+    #[cfg(feature = "unsafe")]
+    pub fn jsi(&mut self) -> &mut crate::jsi::Runtime {
+        unsafe { &mut *(self.jsi_runtime() as *mut crate::jsi::Runtime) }
+    }
+
     /// Compile JavaScript source to Hermes bytecode.
     ///
     /// # Arguments

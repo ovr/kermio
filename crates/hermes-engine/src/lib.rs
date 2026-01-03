@@ -5,6 +5,9 @@
 // Include the bindgen-generated bindings
 include!(concat!(env!("OUT_DIR"), "/bindings.rs"));
 
+// Re-export jsi-rs as the jsi module for JSI API access
+pub use jsi_rs as jsi;
+
 pub mod runtime;
 pub use runtime::Runtime;
 
