@@ -52,6 +52,10 @@ pub mod ffi {
         #[namespace = "facebook::jsi"]
         #[cxx_name = "PropNameID"]
         type JSIPropNameID;
+
+        #[namespace = "facebook::jsi"]
+        #[cxx_name = "BigInt"]
+        type JSIBigInt;
     }
 
     // Helper functions for creating JSI objects
@@ -63,5 +67,29 @@ pub mod ffi {
 
         #[namespace = "jsi_rs"]
         fn create_array(runtime: Pin<&mut JSIRuntime>, length: usize) -> UniquePtr<JSIArray>;
+
+        #[namespace = "jsi_rs"]
+        fn create_string_from_utf8(
+            runtime: Pin<&mut JSIRuntime>,
+            data: &str,
+        ) -> UniquePtr<JSIString>;
+
+        #[namespace = "jsi_rs"]
+        fn create_propnameid_from_utf8(
+            runtime: Pin<&mut JSIRuntime>,
+            data: &str,
+        ) -> UniquePtr<JSIPropNameID>;
+
+        #[namespace = "jsi_rs"]
+        fn create_bigint_from_i64(
+            runtime: Pin<&mut JSIRuntime>,
+            value: i64,
+        ) -> UniquePtr<JSIBigInt>;
+
+        #[namespace = "jsi_rs"]
+        fn create_bigint_from_u64(
+            runtime: Pin<&mut JSIRuntime>,
+            value: u64,
+        ) -> UniquePtr<JSIBigInt>;
     }
 }
