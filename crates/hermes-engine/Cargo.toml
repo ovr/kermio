@@ -3,6 +3,27 @@ name = "hermes-engine"
 version = "0.0.1"
 edition = "2021"
 license = "MIT"
+exclude = [
+    "hermes-vendor/build/",
+    "hermes-vendor/_build/",
+    "hermes-vendor/CMakeFiles/",
+    "hermes-vendor/CMakeCache.txt",
+    "hermes-vendor/cmake-build-*",
+    "hermes-vendor/**/*.a",
+    "hermes-vendor/**/*.o",
+    "hermes-vendor/.git/",
+    "hermes-vendor/API/hermes_sandbox/",
+    "hermes-vendor/benchmarks/",
+    "hermes-vendor/test/",
+    "hermes-vendor/unittests/",
+    "hermes-vendor/examples/",
+    "hermes-vendor/doc/",
+    "hermes-vendor/.github/",
+    "hermes-vendor/.circleci/",
+    "hermes-vendor/.devcontainer/",
+    "hermes-vendor/npm/",
+    "hermes-vendor/android/",
+]
 
 [dependencies]
 libc = "0.2"
