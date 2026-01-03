@@ -1,25 +1,47 @@
-use std::ptr::NonNull;
-
-/// Wrapper around facebook::jsi::Value providing a safe Rust API
+/// Represents a JavaScript value that can hold any JS type (undefined, null, boolean, number, string, object, etc.)
 pub struct JSValue {
-    inner: NonNull<crate::sys::ffi::JSIValue>,
+    inner: cxx::UniquePtr<crate::sys::ffi::JSIValue>,
 }
 
 impl JSValue {
+    /// Create an undefined JavaScript value
+    pub fn undefined() -> Self {
+        let ptr = crate::sys::ffi::create_value_undefined();
+        Self { inner: ptr }
+    }
+
+    /// Create a null JavaScript value
+    pub fn null() -> Self {
+        let ptr = crate::sys::ffi::create_value_null();
+        Self { inner: ptr }
+    }
+
+    /// Create a boolean JavaScript value
+    pub fn bool(value: bool) -> Self {
+        let ptr = crate::sys::ffi::create_value_bool(value);
+        Self { inner: ptr }
+    }
+
+    /// Create a number JavaScript value
+    pub fn number(value: f64) -> Self {
+        let ptr = crate::sys::ffi::create_value_number(value);
+        Self { inner: ptr }
+    }
+
     pub unsafe fn from_raw(ptr: *mut crate::sys::ffi::JSIValue) -> Self {
         Self {
-            inner: NonNull::new_unchecked(ptr),
+            inner: cxx::UniquePtr::from_raw(ptr),
         }
     }
 
     fn as_ref(&self) -> &crate::sys::ffi::JSIValue {
-        unsafe { self.inner.as_ref() }
+        self.inner.as_ref().expect("JSValue inner pointer is null")
     }
 
-    /// Access the inner NonNull pointer for advanced usage
+    /// Access the inner UniquePtr for advanced usage
     #[cfg(feature = "sys")]
-    pub fn inner(&self) -> NonNull<crate::sys::ffi::JSIValue> {
-        self.inner
+    pub fn inner(&self) -> &cxx::UniquePtr<crate::sys::ffi::JSIValue> {
+        &self.inner
     }
 
     pub fn is_undefined(&self) -> bool {

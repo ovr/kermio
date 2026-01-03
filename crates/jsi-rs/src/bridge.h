@@ -39,4 +39,20 @@ inline std::unique_ptr<facebook::jsi::BigInt> create_bigint_from_u64(facebook::j
     return std::make_unique<facebook::jsi::BigInt>(facebook::jsi::BigInt::fromUint64(runtime, value));
 }
 
+inline std::unique_ptr<facebook::jsi::Value> create_value_undefined() {
+    return std::make_unique<facebook::jsi::Value>();
+}
+
+inline std::unique_ptr<facebook::jsi::Value> create_value_null() {
+    return std::make_unique<facebook::jsi::Value>(nullptr);
+}
+
+inline std::unique_ptr<facebook::jsi::Value> create_value_bool(bool value) {
+    return std::make_unique<facebook::jsi::Value>(value);
+}
+
+inline std::unique_ptr<facebook::jsi::Value> create_value_number(double value) {
+    return std::make_unique<facebook::jsi::Value>(value);
+}
+
 } // namespace jsi_rs

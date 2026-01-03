@@ -91,5 +91,17 @@ pub mod ffi {
             runtime: Pin<&mut JSIRuntime>,
             value: u64,
         ) -> UniquePtr<JSIBigInt>;
+
+        #[namespace = "jsi_rs"]
+        fn create_value_undefined() -> UniquePtr<JSIValue>;
+
+        #[namespace = "jsi_rs"]
+        fn create_value_null() -> UniquePtr<JSIValue>;
+
+        #[namespace = "jsi_rs"]
+        fn create_value_bool(value: bool) -> UniquePtr<JSIValue>;
+
+        #[namespace = "jsi_rs"]
+        fn create_value_number(value: f64) -> UniquePtr<JSIValue>;
     }
 }

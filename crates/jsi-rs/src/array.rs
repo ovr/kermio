@@ -1,5 +1,3 @@
-use std::pin::Pin;
-
 use crate::JSRuntime;
 
 /// Wrapper around facebook::jsi::Array providing a safe Rust API
