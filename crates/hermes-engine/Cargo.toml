@@ -22,7 +22,15 @@ exclude = [
     "hermes-vendor/.circleci/",
     "hermes-vendor/.devcontainer/",
     "hermes-vendor/npm/",
-    "hermes-vendor/android/",
+    "hermes-vendor/android/build-logic",
+    "hermes-vendor/android/cppruntime",
+    "hermes-vendor/android/cross-compile",
+    "hermes-vendor/android/gradle",
+    "hermes-vendor/android/ios-artifacts",
+    "hermes-vendor/android/*.gradle*",
+    "hermes-vendor/android/gradlew*",
+    "hermes-vendor/external/esprima/test_fixtures/",
+    "hermes-vendor/external/flowtest/",
 ]
 
 [dependencies]

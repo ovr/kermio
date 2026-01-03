@@ -12,6 +12,9 @@ fn main() {
         eprintln!("This directory should be included in the published crate.");
         eprintln!("If you're developing from source, initialize the git submodule:");
         eprintln!("  git submodule update --init --recursive");
+        eprintln!("");
+        eprintln!("After initializing the submodule, apply patches:");
+        eprintln!("  ./apply-patches.sh");
         panic!("hermes-vendor not found");
     }
 
