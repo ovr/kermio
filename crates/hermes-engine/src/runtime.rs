@@ -1,6 +1,7 @@
 use std::ffi::{CStr, CString};
 use std::ptr;
 
+use crate::jsi::JSValue;
 use crate::{
     hermes_compile_js, hermes_free_bytecode, hermes_is_hermes_bytecode, hermes_runtime_create,
     hermes_runtime_destroy, hermes_runtime_eval_bytecode, hermes_runtime_eval_js,
@@ -42,19 +43,19 @@ impl Runtime {
     /// * `source_url` - Optional URL/name for the source (used in error messages)
     ///
     /// # Returns
-    /// * `Ok(String)` with the result value as a string
+    /// * `Ok(JSValue)` with the result value
     /// * `Err(String)` with error message on failure
     pub fn eval_with_result(
         &mut self,
         source: &str,
         source_url: Option<&str>,
-    ) -> Result<String, String> {
+    ) -> Result<JSValue, String> {
         let source_cstr = CString::new(source).map_err(|e| format!("Invalid source: {}", e))?;
         let url_cstr = source_url.map(|url| CString::new(url).ok()).flatten();
 
         let url_ptr = url_cstr.as_ref().map(|s| s.as_ptr()).unwrap_or(ptr::null());
 
-        let mut result_ptr: *mut std::os::raw::c_char = ptr::null_mut();
+        let mut result_ptr: *mut std::os::raw::c_void = ptr::null_mut();
         let error_ptr = unsafe {
             hermes_runtime_eval_js(
                 self.handle,
@@ -66,17 +67,14 @@ impl Runtime {
         };
 
         if error_ptr.is_null() {
-            // Success - get the result
-            let result = if result_ptr.is_null() {
-                "undefined".to_string()
-            } else {
-                unsafe {
-                    let result_str = CStr::from_ptr(result_ptr).to_string_lossy().into_owned();
-                    libc::free(result_ptr as *mut libc::c_void);
-                    result_str
-                }
-            };
-            Ok(result)
+            if result_ptr.is_null() {
+                return Err("Evaluation succeeded but no result was returned".to_string());
+            }
+
+            let js_value =
+                unsafe { JSValue::from_raw(result_ptr as *mut crate::jsi::sys::ffi::JSIValue) };
+
+            Ok(js_value)
         } else {
             let error_msg = unsafe {
                 let msg = CStr::from_ptr(error_ptr).to_string_lossy().into_owned();

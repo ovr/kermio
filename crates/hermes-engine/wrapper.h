@@ -20,13 +20,13 @@ void hermes_runtime_destroy(HermesRuntimeHandle* runtime);
 
 // Evaluate JavaScript source code
 // Returns NULL on success, or an error message on failure (caller must free)
-// If result_out is not NULL, it will be set to a string representation of the result (caller must free)
+// If result_out is not NULL, it will be set to a pointer to jsi::Value (caller must free)
 char* hermes_runtime_eval_js(
     HermesRuntimeHandle* runtime,
     const char* source,
     size_t source_len,
     const char* source_url,
-    char** result_out);
+    void** result_out);
 
 // Check if bytecode is valid Hermes bytecode
 bool hermes_is_hermes_bytecode(const uint8_t* data, size_t len);

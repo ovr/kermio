@@ -1,5 +1,8 @@
-// Low-level FFI bindings - hidden from public API
+// Low-level FFI bindings - conditionally exposed via 'sys' feature
+#[cfg(not(feature = "sys"))]
 mod sys;
+#[cfg(feature = "sys")]
+pub mod sys;
 
 // Public API modules
 mod array;

@@ -34,7 +34,7 @@ char* hermes_runtime_eval_js(
     const char* source,
     size_t source_len,
     const char* source_url,
-    char** result_out) {
+    void** result_out) {
 
     if (!handle || !handle->runtime) {
         char* error = (char*)malloc(32);
@@ -51,65 +51,10 @@ char* hermes_runtime_eval_js(
             std::make_unique<jsi::StringBuffer>(source_str),
             url_str);
 
-        // Convert result to string if requested
+        // Return the jsi::Value as a pointer if requested
         if (result_out) {
-            std::string result_str;
-            if (result.isUndefined()) {
-                result_str = "undefined";
-            } else if (result.isNull()) {
-                result_str = "null";
-            } else if (result.isString()) {
-                result_str = result.asString(runtime).utf8(runtime);
-            } else if (result.isNumber()) {
-                result_str = std::to_string(result.asNumber());
-            } else if (result.isBool()) {
-                result_str = result.getBool() ? "true" : "false";
-            } else if (result.isObject()) {
-                auto obj = result.asObject(runtime);
-                if (obj.isFunction(runtime)) {
-                    result_str = "[Function]";
-                } else if (obj.isArray(runtime)) {
-                    // Simple array serialization
-                    auto arr = obj.asArray(runtime);
-                    size_t len = arr.size(runtime);
-                    result_str = "[";
-                    for (size_t i = 0; i < len && i < 100; i++) {
-                        if (i > 0) result_str += ",";
-                        auto elem = arr.getValueAtIndex(runtime, i);
-                        if (elem.isString()) {
-                            result_str += "\"" + elem.asString(runtime).utf8(runtime) + "\"";
-                        } else if (elem.isNumber()) {
-                            result_str += std::to_string(elem.asNumber());
-                        } else if (elem.isBool()) {
-                            result_str += elem.getBool() ? "true" : "false";
-                        } else if (elem.isNull()) {
-                            result_str += "null";
-                        } else if (elem.isUndefined()) {
-                            result_str += "undefined";
-                        } else {
-                            result_str += "...";
-                        }
-                    }
-                    if (len > 100) result_str += ",...";
-                    result_str += "]";
-                } else {
-                    // Try to use JSON.stringify for objects
-                    try {
-                        auto global = runtime.global();
-                        auto json = global.getPropertyAsObject(runtime, "JSON");
-                        auto stringify = json.getPropertyAsFunction(runtime, "stringify");
-                        auto stringified = stringify.call(runtime, json, result);
-                        result_str = stringified.asString(runtime).utf8(runtime);
-                    } catch (...) {
-                        result_str = "[Object]";
-                    }
-                }
-            } else {
-                result_str = "[Unknown]";
-            }
-
-            *result_out = (char*)malloc(result_str.size() + 1);
-            strcpy(*result_out, result_str.c_str());
+            // Allocate a new jsi::Value and move the result into it
+            *result_out = new jsi::Value(std::move(result));
         }
 
         // Success - return NULL for error

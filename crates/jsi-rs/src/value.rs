@@ -13,7 +13,7 @@ impl JSValue {
     ///
     /// # Safety
     /// The pointer must be valid and point to a properly initialized JSIValue
-    pub(crate) unsafe fn from_raw(ptr: *mut crate::sys::ffi::JSIValue) -> Self {
+    pub unsafe fn from_raw(ptr: *mut crate::sys::ffi::JSIValue) -> Self {
         Self {
             inner: NonNull::new_unchecked(ptr),
         }

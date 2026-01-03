@@ -34,4 +34,58 @@ mod tests {
         assert!(result.is_err());
         assert!(result.unwrap_err().contains("test error"));
     }
+
+    #[test]
+    fn test_eval_with_result_number() {
+        let mut runtime = Runtime::new().expect("Failed to create runtime");
+        let result = runtime
+            .eval_with_result("2 + 2", None)
+            .expect("Failed to evaluate");
+        assert!(result.is_number());
+    }
+
+    #[test]
+    fn test_eval_with_result_string() {
+        let mut runtime = Runtime::new().expect("Failed to create runtime");
+        let result = runtime
+            .eval_with_result("'hello'", None)
+            .expect("Failed to evaluate");
+        assert!(result.is_string());
+    }
+
+    #[test]
+    fn test_eval_with_result_bool() {
+        let mut runtime = Runtime::new().expect("Failed to create runtime");
+        let result = runtime
+            .eval_with_result("true", None)
+            .expect("Failed to evaluate");
+        assert!(result.is_bool());
+    }
+
+    #[test]
+    fn test_eval_with_result_null() {
+        let mut runtime = Runtime::new().expect("Failed to create runtime");
+        let result = runtime
+            .eval_with_result("null", None)
+            .expect("Failed to evaluate");
+        assert!(result.is_null());
+    }
+
+    #[test]
+    fn test_eval_with_result_undefined() {
+        let mut runtime = Runtime::new().expect("Failed to create runtime");
+        let result = runtime
+            .eval_with_result("undefined", None)
+            .expect("Failed to evaluate");
+        assert!(result.is_undefined());
+    }
+
+    #[test]
+    fn test_eval_with_result_object() {
+        let mut runtime = Runtime::new().expect("Failed to create runtime");
+        let result = runtime
+            .eval_with_result("({foo: 'bar'})", None)
+            .expect("Failed to evaluate");
+        assert!(result.is_object());
+    }
 }

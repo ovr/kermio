@@ -6,6 +6,10 @@ license = "MIT"
 description = "Rust bindings to JSI (JavaScript Interface) using cxx"
 repository = "https://github.com/ovr/kermio/tree/main/crates/jsi-rs"
 
+[features]
+# Expose low-level sys module for advanced usage
+sys = []
+
 [dependencies]
 cxx = "1.0"
 

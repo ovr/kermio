@@ -44,7 +44,7 @@ exclude = [
 
 [dependencies]
 libc = "0.2"
-jsi-rs = { path = "../jsi-rs" }
+jsi-rs = { path = "../jsi-rs", features = ["sys"] }
 
 [features]
 # Enable unsafe low-level JSI API access
