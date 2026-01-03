@@ -4,14 +4,14 @@ use crate::sys::ffi;
 ///
 /// This is a wrapper around the C++ facebook::jsi::Runtime class.
 /// The Runtime provides the main execution context for JavaScript.
-pub struct Runtime {
+pub struct JSRuntime {
     // We store a raw pointer since we don't own the Runtime
     // It's typically owned by the Hermes engine
     ptr: *mut ffi::JSIRuntime,
 }
 
-impl Runtime {
-    /// Create a Runtime wrapper from a raw pointer
+impl JSRuntime {
+    /// Create a JSRuntime wrapper from a raw pointer
     ///
     /// # Safety
     /// The caller must ensure:
@@ -46,9 +46,9 @@ impl Runtime {
     }
 }
 
-// Runtime is Send but not Sync
+// JSRuntime is Send but not Sync
 // JavaScript runtimes are typically single-threaded
-unsafe impl Send for Runtime {}
+unsafe impl Send for JSRuntime {}
 
 #[cfg(test)]
 mod tests {
