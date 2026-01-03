@@ -6,3 +6,5 @@ hermes-vendor/CMakeCache.txt
 hermes-vendor/cmake-build-*
 hermes-vendor/**/*.a
 hermes-vendor/**/*.o
+# Git directories
+hermes-vendor/.git/
