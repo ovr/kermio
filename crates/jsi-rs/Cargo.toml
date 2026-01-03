@@ -1,0 +1,13 @@
+[package]
+name = "jsi-rs"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+description = "Rust bindings to JSI (JavaScript Interface) using cxx"
+repository = "https://github.com/ovr/kermio/tree/main/crates/jsi-rs"
+
+[dependencies]
+cxx = "1.0"
+
+[build-dependencies]
+cxx-build = "1.0"
