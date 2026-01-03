@@ -3,8 +3,9 @@ use std::path::PathBuf;
 
 fn main() {
     let manifest_dir = env::var("CARGO_MANIFEST_DIR").unwrap();
+    let manifest_path = PathBuf::from(&manifest_dir);
 
-    let hermes_src = PathBuf::from(&manifest_dir).join("hermes-vendor");
+    let hermes_src = manifest_path.join("hermes-vendor");
     if !hermes_src.exists() {
         eprintln!("ERROR: hermes-vendor directory not found!");
         eprintln!("The hermes-engine crate requires the Hermes source code.");
@@ -28,23 +29,23 @@ fn main() {
         .define("HERMES_ENABLE_TEST_SUITE", "OFF")
         .build();
 
-    // Compile our C++ wrapper
+    // Setup includes for cxx bridge
     let hermes_api_include = hermes_src.join("API");
     let jsi_include = hermes_src.join("API/jsi");
     let installed_include = dst.join("include");
     let hermes_public_include = hermes_src.join("include");
 
-    cc::Build::new()
-        .cpp(true)
-        .file("wrapper.cpp")
+    // Build the cxx bridge
+    cxx_build::bridge("src/bridge.rs")
+        .file("src/hermes_bridge.cpp")
         .include(&hermes_api_include)
         .include(&jsi_include)
         .include(&installed_include)
         .include(&hermes_public_include)
-        .include(&manifest_dir)
+        .include(&manifest_path)
         .flag_if_supported("-std=c++17")
         .flag_if_supported("-stdlib=libc++")
-        .compile("hermes_wrapper");
+        .compile("hermes_bridge");
 
     // Tell cargo to link the Hermes libraries
     // Note: Hermes build creates libraries in various subdirectories under build/
@@ -213,18 +214,8 @@ fn main() {
         println!("cargo:rustc-link-lib=stdc++");
     }
 
-    // Generate bindings using bindgen
-    let bindings = bindgen::Builder::default()
-        .header("wrapper.h")
-        .parse_callbacks(Box::new(bindgen::CargoCallbacks::new()))
-        .generate()
-        .expect("Unable to generate bindings");
-
-    let out_path = PathBuf::from(env::var("OUT_DIR").unwrap());
-    bindings
-        .write_to_file(out_path.join("bindings.rs"))
-        .expect("Couldn't write bindings!");
-
-    println!("cargo:rerun-if-changed=wrapper.h");
-    println!("cargo:rerun-if-changed=wrapper.cpp");
+    // Rebuild if bridge files change
+    println!("cargo:rerun-if-changed=src/bridge.rs");
+    println!("cargo:rerun-if-changed=src/hermes_bridge.h");
+    println!("cargo:rerun-if-changed=src/hermes_bridge.cpp");
 }

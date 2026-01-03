@@ -1,25 +1,18 @@
-use std::ffi::{CStr, CString};
+use cxx::UniquePtr;
 use std::ptr;
 
+use crate::bridge::ffi;
 use crate::jsi::JSValue;
-use crate::{
-    hermes_compile_js, hermes_free_bytecode, hermes_is_hermes_bytecode, hermes_runtime_create,
-    hermes_runtime_destroy, hermes_runtime_eval_bytecode, hermes_runtime_eval_js,
-    hermes_runtime_get_jsi, HermesRuntimeHandle,
-};
 
 /// A Hermes JavaScript runtime instance.
 pub struct Runtime {
-    handle: *mut HermesRuntimeHandle,
+    handle: UniquePtr<ffi::HermesRuntime>,
 }
 
 impl Runtime {
     /// Create a new Hermes runtime with default configuration.
     pub fn new() -> Result<Self, String> {
-        let handle = unsafe { hermes_runtime_create() };
-        if handle.is_null() {
-            return Err("Failed to create Hermes runtime".to_string());
-        }
+        let handle = ffi::create_hermes_runtime();
         Ok(Self { handle })
     }
 
@@ -50,49 +43,37 @@ impl Runtime {
         source: &str,
         source_url: Option<&str>,
     ) -> Result<JSValue, String> {
-        let source_cstr = CString::new(source).map_err(|e| format!("Invalid source: {}", e))?;
-        let url_cstr = source_url.map(|url| CString::new(url).ok()).flatten();
+        let url = source_url.unwrap_or("eval");
+        let mut result_ptr: *mut u8 = ptr::null_mut();
 
-        let url_ptr = url_cstr.as_ref().map(|s| s.as_ptr()).unwrap_or(ptr::null());
-
-        let mut result_ptr: *mut std::os::raw::c_void = ptr::null_mut();
-        let error_ptr = unsafe {
-            hermes_runtime_eval_js(
-                self.handle,
-                source_cstr.as_ptr(),
-                source.len(),
-                url_ptr,
-                &mut result_ptr,
+        unsafe {
+            ffi::eval_js(
+                self.handle.pin_mut(),
+                source,
+                url,
+                &mut result_ptr as *mut *mut u8,
             )
-        };
-
-        if error_ptr.is_null() {
-            if result_ptr.is_null() {
-                return Err("Evaluation succeeded but no result was returned".to_string());
-            }
-
-            let js_value =
-                unsafe { JSValue::from_raw(result_ptr as *mut crate::jsi::sys::ffi::JSIValue) };
-
-            Ok(js_value)
-        } else {
-            let error_msg = unsafe {
-                let msg = CStr::from_ptr(error_ptr).to_string_lossy().into_owned();
-                libc::free(error_ptr as *mut libc::c_void);
-                msg
-            };
-            Err(error_msg)
+            .map_err(|e| e.to_string())?;
         }
+
+        if result_ptr.is_null() {
+            return Err("Evaluation succeeded but no result was returned".to_string());
+        }
+
+        let js_value =
+            unsafe { JSValue::from_raw(result_ptr as *mut crate::jsi::sys::ffi::JSIValue) };
+
+        Ok(js_value)
     }
 
     /// Check if the given bytecode is valid Hermes bytecode.
     pub fn is_hermes_bytecode(data: &[u8]) -> bool {
-        unsafe { hermes_is_hermes_bytecode(data.as_ptr(), data.len()) }
+        ffi::is_hermes_bytecode(data)
     }
 
     /// Get the underlying JSI runtime pointer
     pub fn jsi_runtime(&mut self) -> *mut std::os::raw::c_void {
-        unsafe { hermes_runtime_get_jsi(self.handle) }
+        unsafe { ffi::get_jsi_runtime(self.handle.pin_mut()) as *mut std::os::raw::c_void }
     }
 
     /// Get a reference to the underlying JSI Runtime
@@ -117,45 +98,8 @@ impl Runtime {
     /// * `Ok(Vec<u8>)` with bytecode on success
     /// * `Err(String)` with error message on failure
     pub fn compile_to_bytecode(source: &str, source_url: Option<&str>) -> Result<Vec<u8>, String> {
-        let source_cstr = CString::new(source).map_err(|e| format!("Invalid source: {}", e))?;
-        let url_cstr = source_url.map(|url| CString::new(url).ok()).flatten();
-
-        let url_ptr = url_cstr.as_ref().map(|s| s.as_ptr()).unwrap_or(ptr::null());
-
-        let mut bytecode_ptr: *mut u8 = ptr::null_mut();
-        let mut bytecode_len: usize = 0;
-
-        let error_ptr = unsafe {
-            hermes_compile_js(
-                source_cstr.as_ptr(),
-                source.len(),
-                url_ptr,
-                &mut bytecode_ptr,
-                &mut bytecode_len,
-            )
-        };
-
-        if error_ptr.is_null() {
-            // Success - copy bytecode into a Vec
-            let bytecode = if bytecode_ptr.is_null() || bytecode_len == 0 {
-                Vec::new()
-            } else {
-                unsafe {
-                    let slice = std::slice::from_raw_parts(bytecode_ptr, bytecode_len);
-                    let result = slice.to_vec();
-                    hermes_free_bytecode(bytecode_ptr, bytecode_len);
-                    result
-                }
-            };
-            Ok(bytecode)
-        } else {
-            let error_msg = unsafe {
-                let msg = CStr::from_ptr(error_ptr).to_string_lossy().into_owned();
-                libc::free(error_ptr as *mut libc::c_void);
-                msg
-            };
-            Err(error_msg)
-        }
+        let url = source_url.unwrap_or("bundle");
+        ffi::compile_js_to_bytecode(source, url, true).map_err(|e| e.to_string())
     }
 
     /// Evaluate pre-compiled Hermes bytecode.
@@ -167,27 +111,7 @@ impl Runtime {
     /// * `Ok(())` on success
     /// * `Err(String)` with error message on failure
     pub fn eval_bytecode(&mut self, bytecode: &[u8]) -> Result<(), String> {
-        let error_ptr =
-            unsafe { hermes_runtime_eval_bytecode(self.handle, bytecode.as_ptr(), bytecode.len()) };
-
-        if error_ptr.is_null() {
-            Ok(())
-        } else {
-            let error_msg = unsafe {
-                let msg = CStr::from_ptr(error_ptr).to_string_lossy().into_owned();
-                libc::free(error_ptr as *mut libc::c_void);
-                msg
-            };
-            Err(error_msg)
-        }
-    }
-}
-
-impl Drop for Runtime {
-    fn drop(&mut self) {
-        unsafe {
-            hermes_runtime_destroy(self.handle);
-        }
+        ffi::eval_bytecode(self.handle.pin_mut(), bytecode).map_err(|e| e.to_string())
     }
 }
 
