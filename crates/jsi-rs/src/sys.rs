@@ -60,5 +60,8 @@ pub mod ffi {
 
         #[namespace = "jsi_rs"]
         fn create_object(runtime: Pin<&mut JSIRuntime>) -> UniquePtr<JSIObject>;
+
+        #[namespace = "jsi_rs"]
+        fn create_array(runtime: Pin<&mut JSIRuntime>, length: usize) -> UniquePtr<JSIArray>;
     }
 }

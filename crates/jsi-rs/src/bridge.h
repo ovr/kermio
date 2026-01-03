@@ -1,21 +1,18 @@
 #pragma once
 
-// Bridge functions for creating JSI objects from Rust.
-//
-// This file contains inline C++ wrapper functions to work around CXX limitations.
-// CXX doesn't support calling C++ constructors directly from Rust, so we provide
-// factory functions that wrap constructor calls.
-//
-// Related issue: https://github.com/dtolnay/cxx/issues/280
+// Factory functions wrapping JSI constructors for CXX bridge.
+// CXX doesn't support C++ constructors: https://github.com/dtolnay/cxx/issues/280
 
 #include "jsi/jsi.h"
 
 namespace jsi_rs {
 
-// Create a new empty Object (like {} in JS)
-// Returns a std::unique_ptr for automatic memory management
 inline std::unique_ptr<facebook::jsi::Object> create_object(facebook::jsi::Runtime& runtime) {
     return std::make_unique<facebook::jsi::Object>(runtime);
+}
+
+inline std::unique_ptr<facebook::jsi::Array> create_array(facebook::jsi::Runtime& runtime, size_t length) {
+    return std::make_unique<facebook::jsi::Array>(runtime, length);
 }
 
 } // namespace jsi_rs

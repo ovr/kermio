@@ -1,20 +1,25 @@
-use std::ptr::NonNull;
+use std::pin::Pin;
+
+use crate::JSRuntime;
 
 /// Wrapper around facebook::jsi::Array providing a safe Rust API
 pub struct JSArray {
-    inner: NonNull<crate::sys::ffi::JSIArray>,
+    inner: cxx::UniquePtr<crate::sys::ffi::JSIArray>,
 }
 
 impl JSArray {
-    pub(crate) unsafe fn from_raw(ptr: *mut crate::sys::ffi::JSIArray) -> Self {
-        Self {
-            inner: NonNull::new_unchecked(ptr),
-        }
+    /// Create a new JavaScript array with the specified length
+    pub fn new(runtime: &mut JSRuntime, length: usize) -> Self {
+        let ptr = unsafe {
+            let runtime_ref = runtime.as_mut();
+            crate::sys::ffi::create_array(Pin::new_unchecked(runtime_ref), length)
+        };
+        Self { inner: ptr }
     }
 
-    /// Access the inner NonNull pointer for advanced usage
+    /// Access the inner UniquePtr for advanced usage
     #[cfg(feature = "sys")]
-    pub fn inner(&self) -> NonNull<crate::sys::ffi::JSIArray> {
-        self.inner
+    pub fn inner(&self) -> &cxx::UniquePtr<crate::sys::ffi::JSIArray> {
+        &self.inner
     }
 }
