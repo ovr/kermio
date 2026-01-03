@@ -3,6 +3,8 @@ name = "hermes-engine"
 version = "0.0.1"
 edition = "2021"
 license = "MIT"
+description = "Rust bindings to the Hermes JavaScript engine"
+repository = "https://github.com/ovr/kermio/tree/main/crates/hermes-engine"
 exclude = [
     "hermes-vendor/build/",
     "hermes-vendor/_build/",
