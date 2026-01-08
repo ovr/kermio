@@ -8,12 +8,33 @@ pub mod ffi {
     unsafe extern "C++" {
         include!("hermes-engine/src/wrapper.h");
 
+        // Runtime configuration - maps to hermes::vm::RuntimeConfig
+        #[namespace = "hermes::vm"]
+        type RuntimeConfig;
+
         // Hermes Runtime handle - maps to facebook::hermes::HermesRuntime
         #[namespace = "facebook::hermes"]
         type HermesRuntime;
 
+        // Create RuntimeConfig with all settings
+        fn create_runtime_config(
+            init_heap_size: u32,
+            max_heap_size: u32,
+            enable_eval: bool,
+            enable_jit: bool,
+            enable_es6_proxy: bool,
+            enable_es6_block_scoping: bool,
+            enable_intl: bool,
+            enable_microtask_queue: bool,
+            enable_generator: bool,
+            enable_hermes_internal: bool,
+            enable_sample_profiling: bool,
+            native_stack_gap: u32,
+            max_num_registers: u32,
+        ) -> UniquePtr<RuntimeConfig>;
+
         // Create a new Hermes runtime
-        fn create_hermes_runtime() -> UniquePtr<HermesRuntime>;
+        fn create_hermes_runtime(config: &RuntimeConfig) -> UniquePtr<HermesRuntime>;
 
         // Evaluate JavaScript source code
         // Returns error string on failure, empty string on success
@@ -35,16 +56,10 @@ pub mod ffi {
         // Check if data is Hermes bytecode
         fn is_hermes_bytecode(data: &[u8]) -> bool;
 
-        // Get bytecode version
-        fn get_bytecode_version() -> u32;
-
         // Evaluate bytecode
         fn eval_bytecode(runtime: Pin<&mut HermesRuntime>, bytecode: &[u8]) -> Result<()>;
 
         // Get the underlying JSI runtime pointer
         unsafe fn get_jsi_runtime(runtime: Pin<&mut HermesRuntime>) -> *mut u8;
-
-        // Free a JSI value pointer
-        unsafe fn free_jsi_value(value: *mut u8);
     }
 }

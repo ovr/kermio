@@ -4,14 +4,67 @@
 #include "rust/cxx.h"
 #include <hermes/hermes.h>
 #include <hermes-vendor/API/hermes/CompileJS.h>
+#include <hermes/Public/RuntimeConfig.h>
 #include <jsi/jsi.h>
 #include <memory>
 #include <string>
 #include <stdexcept>
 
-// Create a new Hermes runtime with default configuration
-inline std::unique_ptr<facebook::hermes::HermesRuntime> create_hermes_runtime() {
-    return facebook::hermes::makeHermesRuntime();
+// Create RuntimeConfig with custom settings
+inline std::unique_ptr<::hermes::vm::RuntimeConfig> create_runtime_config(
+    uint32_t init_heap_size,
+    uint32_t max_heap_size,
+    bool enable_eval,
+    bool enable_jit,
+    bool enable_es6_proxy,
+    bool enable_es6_block_scoping,
+    bool enable_intl,
+    bool enable_microtask_queue,
+    bool enable_generator,
+    bool enable_hermes_internal,
+    bool enable_sample_profiling,
+    uint32_t native_stack_gap,
+    uint32_t max_num_registers) {
+
+    ::hermes::vm::RuntimeConfig::Builder builder;
+    ::hermes::vm::GCConfig::Builder gcBuilder;
+
+    if (init_heap_size > 0 || max_heap_size > 0) {
+        if (init_heap_size > 0) {
+            gcBuilder.withInitHeapSize(init_heap_size);
+        }
+        if (max_heap_size > 0) {
+            gcBuilder.withMaxHeapSize(max_heap_size);
+        }
+        builder.withGCConfig(gcBuilder.build());
+    }
+
+    builder.withEnableEval(enable_eval)
+           .withEnableJIT(enable_jit)
+           .withES6Proxy(enable_es6_proxy)
+           .withES6BlockScoping(enable_es6_block_scoping)
+           .withIntl(enable_intl)
+           .withMicrotaskQueue(enable_microtask_queue)
+           .withEnableGenerator(enable_generator)
+           .withEnableHermesInternal(enable_hermes_internal)
+           .withEnableSampleProfiling(enable_sample_profiling);
+
+    if (native_stack_gap > 0) {
+        builder.withNativeStackGap(native_stack_gap);
+    }
+
+    if (max_num_registers > 0) {
+        builder.withMaxNumRegisters(max_num_registers);
+    }
+
+    return std::make_unique<::hermes::vm::RuntimeConfig>(builder.build());
+}
+
+// Create a new Hermes runtime with provided configuration
+inline std::unique_ptr<facebook::hermes::HermesRuntime> create_hermes_runtime(
+    const ::hermes::vm::RuntimeConfig& config
+) {
+    return facebook::hermes::makeHermesRuntime(config);
 }
 
 // Evaluate JavaScript source code

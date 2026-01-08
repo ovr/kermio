@@ -2,6 +2,7 @@ use cxx::UniquePtr;
 use std::ptr;
 
 use crate::bridge::ffi;
+use crate::config::RuntimeConfig;
 use crate::jsi::JSValue;
 
 /// A Hermes JavaScript runtime instance.
@@ -10,9 +11,9 @@ pub struct Runtime {
 }
 
 impl Runtime {
-    /// Create a new Hermes runtime with default configuration.
-    pub fn new() -> Result<Self, String> {
-        let handle = ffi::create_hermes_runtime();
+    /// Create a new Hermes runtime with the specified configuration.
+    pub fn new(config: RuntimeConfig) -> Result<Self, String> {
+        let handle = ffi::create_hermes_runtime(config.as_ref());
         Ok(Self { handle })
     }
 
@@ -118,9 +119,3 @@ impl Runtime {
 }
 
 unsafe impl Send for Runtime {}
-
-impl Default for Runtime {
-    fn default() -> Self {
-        Self::new().expect("Failed to create Hermes runtime")
-    }
-}

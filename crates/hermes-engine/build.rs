@@ -229,6 +229,4 @@ fn main() {
 
     // Rebuild if bridge files change
     println!("cargo:rerun-if-changed=src/bridge.rs");
-    println!("cargo:rerun-if-changed=src/hermes_bridge.h");
-    println!("cargo:rerun-if-changed=src/hermes_bridge.cpp");
 }

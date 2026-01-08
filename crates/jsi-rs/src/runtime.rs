@@ -29,8 +29,6 @@ unsafe impl Send for JSRuntime {}
 
 #[cfg(test)]
 mod tests {
-    use super::*;
-
     #[test]
     fn test_runtime_creation() {
         // This test just ensures the type compiles
