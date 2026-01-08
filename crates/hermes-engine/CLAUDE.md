@@ -149,3 +149,7 @@ git submodule update --init --recursive
 ```
 
 When published to crates.io, the hermes-vendor directory is bundled with the crate, so downstream users don't need to manage submodules.
+
+### C++ Bridge Implementation
+
+The C++ bridge code (wrapper.h) is implemented as a header-only file. **Do NOT create separate .cpp files** for the bridge implementation - all functions should be inline in the header file. This simplifies the build process and avoids unnecessary complexity in the cxx bridge setup.

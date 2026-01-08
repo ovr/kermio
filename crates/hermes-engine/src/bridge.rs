@@ -6,7 +6,7 @@ pub mod ffi {
 
     // Opaque C++ types
     unsafe extern "C++" {
-        include!("hermes-engine/src/hermes_bridge.h");
+        include!("hermes-engine/src/wrapper.h");
 
         // Hermes Runtime handle
         type HermesRuntime;

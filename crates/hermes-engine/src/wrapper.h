@@ -1,4 +1,7 @@
-#include "hermes_bridge.h"
+#ifndef HERMES_ENGINE_WRAPPER_H
+#define HERMES_ENGINE_WRAPPER_H
+
+#include "rust/cxx.h"
 #include <hermes/hermes.h>
 #include <hermes-vendor/API/hermes/CompileJS.h>
 #include <jsi/jsi.h>
@@ -6,14 +9,31 @@
 #include <string>
 #include <stdexcept>
 
-std::unique_ptr<HermesRuntime> create_hermes_runtime() {
+// Forward declarations
+namespace facebook {
+namespace jsi {
+class Runtime;
+}
+namespace hermes {
+class HermesRuntime;
+}
+}
+
+// Wrapper struct for Hermes runtime
+struct HermesRuntime {
+    std::shared_ptr<facebook::jsi::Runtime> runtime;
+};
+
+// Create a new Hermes runtime with default configuration
+inline std::unique_ptr<HermesRuntime> create_hermes_runtime() {
     auto runtime = facebook::hermes::makeHermesRuntime();
     auto wrapper = std::make_unique<HermesRuntime>();
     wrapper->runtime = std::move(runtime);
     return wrapper;
 }
 
-void eval_js(
+// Evaluate JavaScript source code
+inline void eval_js(
     HermesRuntime& runtime,
     rust::Str source,
     rust::Str source_url,
@@ -45,7 +65,8 @@ void eval_js(
     }
 }
 
-rust::Vec<uint8_t> compile_js_to_bytecode(
+// Compile JavaScript to bytecode
+inline rust::Vec<uint8_t> compile_js_to_bytecode(
     rust::Str source,
     rust::Str source_url,
     bool optimize) {
@@ -72,7 +93,8 @@ rust::Vec<uint8_t> compile_js_to_bytecode(
     return result;
 }
 
-bool is_hermes_bytecode(rust::Slice<const uint8_t> data) {
+// Check if data is Hermes bytecode
+inline bool is_hermes_bytecode(rust::Slice<const uint8_t> data) {
     // Get the Hermes root API
     auto hermesAPI = facebook::hermes::makeHermesRuntime();
 
@@ -90,13 +112,15 @@ bool is_hermes_bytecode(rust::Slice<const uint8_t> data) {
            bytes[2] == 0xC6 && bytes[3] == 0xD0;
 }
 
-uint32_t get_bytecode_version() {
+// Get bytecode version
+inline uint32_t get_bytecode_version() {
     // Hermes bytecode version
     // This should be obtained from Hermes API, but for now return a known version
     return 96; // Hermes 0.12.0+ uses version 96
 }
 
-void eval_bytecode(
+// Evaluate bytecode
+inline void eval_bytecode(
     HermesRuntime& runtime,
     rust::Slice<const uint8_t> bytecode) {
 
@@ -126,15 +150,19 @@ void eval_bytecode(
     }
 }
 
-uint8_t* get_jsi_runtime(HermesRuntime& runtime) {
+// Get the underlying JSI runtime pointer
+inline uint8_t* get_jsi_runtime(HermesRuntime& runtime) {
     if (!runtime.runtime) {
         return nullptr;
     }
     return reinterpret_cast<uint8_t*>(runtime.runtime.get());
 }
 
-void free_jsi_value(uint8_t* value) {
+// Free a JSI value pointer
+inline void free_jsi_value(uint8_t* value) {
     if (value) {
         delete reinterpret_cast<facebook::jsi::Value*>(value);
     }
 }
+
+#endif // HERMES_ENGINE_WRAPPER_H

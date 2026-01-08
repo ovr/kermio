@@ -35,9 +35,8 @@ fn main() {
     let installed_include = dst.join("include");
     let hermes_public_include = hermes_src.join("include");
 
-    // Build the cxx bridge
+    // Build the cxx bridge (header-only, no C++ files to compile)
     cxx_build::bridge("src/bridge.rs")
-        .file("src/hermes_bridge.cpp")
         .include(&hermes_api_include)
         .include(&jsi_include)
         .include(&installed_include)
