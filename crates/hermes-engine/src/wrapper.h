@@ -19,17 +19,11 @@ class HermesRuntime;
 }
 }
 
-// Wrapper struct for Hermes runtime
-struct HermesRuntime {
-    std::shared_ptr<facebook::jsi::Runtime> runtime;
-};
+using namespace facebook::hermes;
 
 // Create a new Hermes runtime with default configuration
 inline std::unique_ptr<HermesRuntime> create_hermes_runtime() {
-    auto runtime = facebook::hermes::makeHermesRuntime();
-    auto wrapper = std::make_unique<HermesRuntime>();
-    wrapper->runtime = std::move(runtime);
-    return wrapper;
+    return makeHermesRuntime();
 }
 
 // Evaluate JavaScript source code
@@ -39,15 +33,11 @@ inline void eval_js(
     rust::Str source_url,
     uint8_t** result_out) {
 
-    if (!runtime.runtime) {
-        throw std::runtime_error("Invalid runtime handle");
-    }
-
     try {
         std::string source_str(source.data(), source.size());
         std::string url_str(source_url.data(), source_url.size());
 
-        auto result = runtime.runtime->evaluateJavaScript(
+        auto result = runtime.evaluateJavaScript(
             std::make_unique<facebook::jsi::StringBuffer>(source_str),
             url_str);
 
@@ -95,17 +85,11 @@ inline rust::Vec<uint8_t> compile_js_to_bytecode(
 
 // Check if data is Hermes bytecode
 inline bool is_hermes_bytecode(rust::Slice<const uint8_t> data) {
-    // Get the Hermes root API
-    auto hermesAPI = facebook::hermes::makeHermesRuntime();
-
-    // Check if it's Hermes bytecode using the JSI interface
-    // For now, return a simple check - this can be improved
     if (data.size() < 8) {
         return false;
     }
 
     // Hermes bytecode starts with a magic number
-    // This is a simplified check
     const uint8_t* bytes = data.data();
     // Check for HBC magic: 0xC61FC6D0 (little endian: 0xD0 0xC6 0x1F 0xC6)
     return bytes[0] == 0xC6 && bytes[1] == 0x1F &&
@@ -124,10 +108,6 @@ inline void eval_bytecode(
     HermesRuntime& runtime,
     rust::Slice<const uint8_t> bytecode) {
 
-    if (!runtime.runtime) {
-        throw std::runtime_error("Invalid runtime handle");
-    }
-
     if (bytecode.empty()) {
         throw std::runtime_error("Invalid bytecode buffer");
     }
@@ -138,7 +118,7 @@ inline void eval_bytecode(
             reinterpret_cast<const char*>(bytecode.data()),
             bytecode.size());
 
-        runtime.runtime->evaluateJavaScript(
+        runtime.evaluateJavaScript(
             std::make_unique<facebook::jsi::StringBuffer>(bytecode_str),
             "bundle");
     } catch (const facebook::jsi::JSError& e) {
@@ -152,10 +132,7 @@ inline void eval_bytecode(
 
 // Get the underlying JSI runtime pointer
 inline uint8_t* get_jsi_runtime(HermesRuntime& runtime) {
-    if (!runtime.runtime) {
-        return nullptr;
-    }
-    return reinterpret_cast<uint8_t*>(runtime.runtime.get());
+    return reinterpret_cast<uint8_t*>(&runtime);
 }
 
 // Free a JSI value pointer
