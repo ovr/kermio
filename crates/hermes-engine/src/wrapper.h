@@ -9,26 +9,14 @@
 #include <string>
 #include <stdexcept>
 
-// Forward declarations
-namespace facebook {
-namespace jsi {
-class Runtime;
-}
-namespace hermes {
-class HermesRuntime;
-}
-}
-
-using namespace facebook::hermes;
-
 // Create a new Hermes runtime with default configuration
-inline std::unique_ptr<HermesRuntime> create_hermes_runtime() {
-    return makeHermesRuntime();
+inline std::unique_ptr<facebook::hermes::HermesRuntime> create_hermes_runtime() {
+    return facebook::hermes::makeHermesRuntime();
 }
 
 // Evaluate JavaScript source code
 inline void eval_js(
-    HermesRuntime& runtime,
+    facebook::hermes::HermesRuntime& runtime,
     rust::Str source,
     rust::Str source_url,
     uint8_t** result_out) {
@@ -105,7 +93,7 @@ inline uint32_t get_bytecode_version() {
 
 // Evaluate bytecode
 inline void eval_bytecode(
-    HermesRuntime& runtime,
+    facebook::hermes::HermesRuntime& runtime,
     rust::Slice<const uint8_t> bytecode) {
 
     if (bytecode.empty()) {
@@ -131,7 +119,7 @@ inline void eval_bytecode(
 }
 
 // Get the underlying JSI runtime pointer
-inline uint8_t* get_jsi_runtime(HermesRuntime& runtime) {
+inline uint8_t* get_jsi_runtime(facebook::hermes::HermesRuntime& runtime) {
     return reinterpret_cast<uint8_t*>(&runtime);
 }
 

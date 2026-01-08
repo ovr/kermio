@@ -8,7 +8,8 @@ pub mod ffi {
     unsafe extern "C++" {
         include!("hermes-engine/src/wrapper.h");
 
-        // Hermes Runtime handle
+        // Hermes Runtime handle - maps to facebook::hermes::HermesRuntime
+        #[namespace = "facebook::hermes"]
         type HermesRuntime;
 
         // Create a new Hermes runtime
