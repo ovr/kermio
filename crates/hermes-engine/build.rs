@@ -19,15 +19,29 @@ fn main() {
         panic!("hermes-vendor not found");
     }
 
-    let dst = cmake::Config::new(&hermes_src)
+    let mut cmake_config = cmake::Config::new(&hermes_src);
+    cmake_config
         .generator("Ninja")
         .define("CMAKE_BUILD_TYPE", "Release")
         .define("HERMES_ENABLE_DEBUGGER", "OFF")
         .define("HERMES_ENABLE_INTL", "OFF")
         .define("HERMES_BUILD_APPLE_FRAMEWORK", "OFF")
         .define("HERMES_BUILD_SHARED_JSI", "OFF")
-        .define("HERMES_ENABLE_TEST_SUITE", "OFF")
-        .build();
+        .define("HERMES_ENABLE_TEST_SUITE", "OFF");
+
+    if cfg!(feature = "typescript") {
+        cmake_config.define("HERMES_PARSE_TS", "1");
+    } else {
+        cmake_config.define("HERMES_PARSE_TS", "0");
+    }
+
+    if cfg!(feature = "flow") {
+        cmake_config.define("HERMES_PARSE_FLOW", "1");
+    } else {
+        cmake_config.define("HERMES_PARSE_FLOW", "0");
+    }
+
+    let dst = cmake_config.build();
 
     // Setup includes for cxx bridge
     let hermes_api_include = hermes_src.join("API");

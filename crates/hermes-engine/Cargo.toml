@@ -48,6 +48,11 @@ jsi-rs = { path = "../jsi-rs", features = ["sys"] }
 cxx = "1.0"
 
 [features]
+default = ["typescript", "flow"]
+# Enable TypeScript parsing support
+typescript = []
+# Enable Flow type checking support
+flow = []
 # Enable unsafe low-level JSI API access
 unsafe = []
 
