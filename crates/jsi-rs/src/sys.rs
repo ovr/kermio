@@ -34,6 +34,9 @@ pub mod ffi {
         fn isObject(self: &JSIValue) -> bool;
 
         #[namespace = "facebook::jsi"]
+        fn isBigInt(self: &JSIValue) -> bool;
+
+        #[namespace = "facebook::jsi"]
         #[cxx_name = "String"]
         type JSIString;
 
@@ -69,6 +72,24 @@ pub mod ffi {
             runtime: Pin<&mut JSIRuntime>,
             obj: &UniquePtr<JSIObject>,
         ) -> UniquePtr<JSIFunction>;
+
+        #[namespace = "jsi_rs"]
+        fn value_as_bool(value: &UniquePtr<JSIValue>) -> bool;
+
+        #[namespace = "jsi_rs"]
+        fn value_as_number(value: &UniquePtr<JSIValue>) -> f64;
+
+        #[namespace = "jsi_rs"]
+        fn value_as_string(
+            runtime: Pin<&mut JSIRuntime>,
+            value: &UniquePtr<JSIValue>,
+        ) -> UniquePtr<JSIString>;
+
+        #[namespace = "jsi_rs"]
+        fn value_as_bigint(
+            runtime: Pin<&mut JSIRuntime>,
+            value: &UniquePtr<JSIValue>,
+        ) -> UniquePtr<JSIBigInt>;
     }
 
     // Helper functions for creating JSI objects

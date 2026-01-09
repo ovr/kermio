@@ -2,7 +2,7 @@ use crate::JSRuntime;
 
 /// Wrapper around facebook::jsi::String providing a safe Rust API
 pub struct JSString {
-    inner: cxx::UniquePtr<crate::sys::ffi::JSIString>,
+    pub(crate) inner: cxx::UniquePtr<crate::sys::ffi::JSIString>,
 }
 
 impl JSString {

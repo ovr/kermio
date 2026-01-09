@@ -59,6 +59,24 @@ inline rust::String string_to_utf8(facebook::jsi::Runtime& runtime, const std::u
     return rust::String(str->utf8(runtime));
 }
 
+inline bool value_as_bool(const std::unique_ptr<facebook::jsi::Value>& value) {
+    return value->getBool();
+}
+
+inline double value_as_number(const std::unique_ptr<facebook::jsi::Value>& value) {
+    return value->getNumber();
+}
+
+inline std::unique_ptr<facebook::jsi::String> value_as_string(facebook::jsi::Runtime& runtime, const std::unique_ptr<facebook::jsi::Value>& value) {
+    facebook::jsi::String str = value->asString(runtime);
+    return std::make_unique<facebook::jsi::String>(std::move(str));
+}
+
+inline std::unique_ptr<facebook::jsi::BigInt> value_as_bigint(facebook::jsi::Runtime& runtime, const std::unique_ptr<facebook::jsi::Value>& value) {
+    facebook::jsi::BigInt bigint = value->asBigInt(runtime);
+    return std::make_unique<facebook::jsi::BigInt>(std::move(bigint));
+}
+
 inline std::unique_ptr<facebook::jsi::Object> value_as_object(facebook::jsi::Runtime& runtime, const std::unique_ptr<facebook::jsi::Value>& value) {
     facebook::jsi::Object obj = value->asObject(runtime);
     return std::make_unique<facebook::jsi::Object>(std::move(obj));
