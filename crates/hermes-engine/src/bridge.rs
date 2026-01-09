@@ -2,8 +2,6 @@
 
 #[cxx::bridge]
 pub mod ffi {
-    // Shared types that can cross the FFI boundary
-
     // Opaque C++ types
     unsafe extern "C++" {
         include!("hermes-engine/src/wrapper.h");
@@ -25,6 +23,11 @@ pub mod ffi {
         #[namespace = "facebook::jsi"]
         #[cxx_name = "Value"]
         type JSIValue;
+
+        // JSI Runtime - maps to facebook::jsi::Runtime
+        #[namespace = "facebook::jsi"]
+        #[cxx_name = "Runtime"]
+        type JSIRuntime;
 
         // Create RuntimeConfig with all settings
         fn create_runtime_config(
@@ -60,14 +63,11 @@ pub mod ffi {
             optimize: bool,
         ) -> Result<Vec<u8>>;
 
-        // Check if data is Hermes bytecode
-        fn is_hermes_bytecode(data: &[u8]) -> bool;
-
         // Evaluate bytecode
         fn eval_bytecode(runtime: Pin<&mut HermesRuntime>, bytecode: &[u8]) -> Result<()>;
 
-        // Get the underlying JSI runtime pointer
-        unsafe fn get_jsi_runtime(runtime: Pin<&mut HermesRuntime>) -> *mut u8;
+        // Get the underlying JSI runtime (upcast HermesRuntime to jsi::Runtime base class)
+        fn get_jsi_runtime(runtime: Pin<&mut HermesRuntime>) -> Pin<&mut JSIRuntime>;
 
         // Prepare JavaScript for optimized execution
         fn prepare_javascript(

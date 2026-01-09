@@ -120,19 +120,6 @@ inline rust::Vec<uint8_t> compile_js_to_bytecode(
     return result;
 }
 
-// Check if data is Hermes bytecode
-inline bool is_hermes_bytecode(rust::Slice<const uint8_t> data) {
-    if (data.size() < 8) {
-        return false;
-    }
-
-    // Hermes bytecode starts with a magic number
-    const uint8_t* bytes = data.data();
-    // Check for HBC magic: 0xC61FC6D0 (little endian: 0xD0 0xC6 0x1F 0xC6)
-    return bytes[0] == 0xC6 && bytes[1] == 0x1F &&
-           bytes[2] == 0xC6 && bytes[3] == 0xD0;
-}
-
 // Get bytecode version
 inline uint32_t get_bytecode_version() {
     // Hermes bytecode version
@@ -167,9 +154,10 @@ inline void eval_bytecode(
     }
 }
 
-// Get the underlying JSI runtime pointer
-inline uint8_t* get_jsi_runtime(facebook::hermes::HermesRuntime& runtime) {
-    return reinterpret_cast<uint8_t*>(&runtime);
+// Get the underlying JSI runtime (upcast HermesRuntime to jsi::Runtime base class)
+inline facebook::jsi::Runtime& get_jsi_runtime(facebook::hermes::HermesRuntime& runtime) {
+    // Upcast to jsi::Runtime base class
+    return static_cast<facebook::jsi::Runtime&>(runtime);
 }
 
 // Prepare JavaScript for optimized execution

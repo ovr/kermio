@@ -67,27 +67,20 @@ impl Runtime {
         Ok(js_value)
     }
 
-    /// Check if the given bytecode is valid Hermes bytecode.
-    pub fn is_hermes_bytecode(data: &[u8]) -> bool {
-        ffi::is_hermes_bytecode(data)
-    }
-
-    /// Get the underlying JSI runtime pointer
-    pub fn jsi_runtime(&mut self) -> *mut std::os::raw::c_void {
-        unsafe { ffi::get_jsi_runtime(self.handle.pin_mut()) as *mut std::os::raw::c_void }
-    }
-
-    /// Get a reference to the underlying JSI Runtime
+    /// Get access to the underlying JSI Runtime
     ///
-    /// This provides access to the low-level JSI API for advanced use cases.
-    ///
-    /// # Safety
-    /// This method is only available when the `unsafe` feature is enabled.
-    /// The caller must ensure proper synchronization when using the JSI API directly.
-    #[cfg(feature = "unsafe")]
+    /// # Example
+    /// ```no_run
+    /// # use hermes_engine::{Runtime, RuntimeConfig};
+    /// let mut runtime = Runtime::new(RuntimeConfig::default())?;
+    /// let mut jsi_runtime = runtime.jsi();
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
+    /// ```
     pub fn jsi(&mut self) -> jsi_rs::JSRuntime {
         unsafe {
-            jsi_rs::JSRuntime::from_raw(self.jsi_runtime() as *mut jsi_rs::sys::ffi::JSIRuntime)
+            let mut jsi_ref = ffi::get_jsi_runtime(self.handle.pin_mut());
+            let ptr = jsi_ref.as_mut().get_unchecked_mut();
+            jsi_rs::JSRuntime::from_raw(ptr as *mut _ as *mut jsi_rs::sys::ffi::JSIRuntime)
         }
     }
 

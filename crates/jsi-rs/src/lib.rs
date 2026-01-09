@@ -1,7 +1,7 @@
-// Low-level FFI bindings - conditionally exposed via 'sys' feature
-#[cfg(not(feature = "sys"))]
+// Low-level FFI bindings - conditionally exposed via 'unsafe' feature
+#[cfg(not(feature = "unsafe"))]
 mod sys;
-#[cfg(feature = "sys")]
+#[cfg(feature = "unsafe")]
 pub mod sys;
 
 // Public API modules

@@ -8,7 +8,7 @@ repository = "https://github.com/ovr/kermio/tree/main/crates/jsi-rs"
 
 [features]
 # Expose low-level sys module for advanced usage
-sys = []
+unsafe = []
 
 [dependencies]
 cxx = "1.0"
