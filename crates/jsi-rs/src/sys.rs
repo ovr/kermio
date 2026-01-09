@@ -103,5 +103,8 @@ pub mod ffi {
 
         #[namespace = "jsi_rs"]
         fn create_value_number(value: f64) -> UniquePtr<JSIValue>;
+
+        #[namespace = "jsi_rs"]
+        fn string_to_utf8(runtime: Pin<&mut JSIRuntime>, str: &UniquePtr<JSIString>) -> String;
     }
 }

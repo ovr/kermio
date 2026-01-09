@@ -19,7 +19,7 @@ impl JSBigInt {
     }
 
     /// Access the inner UniquePtr for advanced usage
-    #[cfg(feature = "sys")]
+    #[cfg(feature = "unsafe")]
     pub fn inner(&self) -> &cxx::UniquePtr<crate::sys::ffi::JSIBigInt> {
         &self.inner
     }

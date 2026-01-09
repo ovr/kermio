@@ -55,4 +55,8 @@ inline std::unique_ptr<facebook::jsi::Value> create_value_number(double value) {
     return std::make_unique<facebook::jsi::Value>(value);
 }
 
+inline rust::String string_to_utf8(facebook::jsi::Runtime& runtime, const std::unique_ptr<facebook::jsi::String>& str) {
+    return rust::String(str->utf8(runtime));
+}
+
 } // namespace jsi_rs

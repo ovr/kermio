@@ -193,7 +193,7 @@ class String {
 };
 ```
 
-**Status:** ✅ Exposed in jsi-rs as `JSString::new()` (UTF-8 only)
+**Status:** ✅ Exposed in jsi-rs as `JSString::new()` and `JSString::value()` (UTF-8 only)
 
 #### Object
 
@@ -930,6 +930,7 @@ Low-level JSI bindings:
 
 ✅ **JSString**
 - `JSString::new(runtime, data)` - Create string from UTF-8
+- `JSString::value(runtime)` - Extract string value as Rust String
 
 ✅ **JSBigInt**
 - `JSBigInt::from_i64(runtime, value)` - Create from i64
@@ -1010,7 +1011,7 @@ impl JSArray {
 ```rust
 impl JSString {
     // Convert to Rust String
-    pub fn to_utf8(&self, runtime: &mut JSRuntime) -> String;
+    pub fn value(&self, runtime: &mut JSRuntime) -> String;  // ✅ Implemented
     pub fn to_utf16(&self, runtime: &mut JSRuntime) -> Vec<u16>;
     pub fn length(&self, runtime: &mut JSRuntime) -> usize;
 }

@@ -17,7 +17,7 @@ impl JSRuntime {
     }
 
     /// Access the inner raw pointer for advanced usage
-    #[cfg(feature = "sys")]
+    #[cfg(feature = "unsafe")]
     pub fn inner(&self) -> *mut ffi::JSIRuntime {
         self.ptr
     }

@@ -1,11 +1,11 @@
-#[cfg(feature = "unsafe")]
 mod tests {
     use hermes_engine::jsi::JSValue;
-    use hermes_engine::Runtime;
+    use hermes_engine::{Runtime, RuntimeConfig};
 
     #[test]
     fn test_jsvalue_undefined() {
-        let mut _runtime = Runtime::new().expect("Failed to create runtime");
+        let mut _runtime =
+            Runtime::new(RuntimeConfig::default()).expect("Failed to create runtime");
 
         let value = JSValue::undefined();
 
@@ -15,7 +15,8 @@ mod tests {
 
     #[test]
     fn test_jsvalue_null() {
-        let mut _runtime = Runtime::new().expect("Failed to create runtime");
+        let mut _runtime =
+            Runtime::new(RuntimeConfig::default()).expect("Failed to create runtime");
 
         let value = JSValue::null();
 
@@ -25,7 +26,8 @@ mod tests {
 
     #[test]
     fn test_jsvalue_bool() {
-        let mut _runtime = Runtime::new().expect("Failed to create runtime");
+        let mut _runtime =
+            Runtime::new(RuntimeConfig::default()).expect("Failed to create runtime");
 
         let value_true = JSValue::bool(true);
         let value_false = JSValue::bool(false);
@@ -36,7 +38,8 @@ mod tests {
 
     #[test]
     fn test_jsvalue_number() {
-        let mut _runtime = Runtime::new().expect("Failed to create runtime");
+        let mut _runtime =
+            Runtime::new(RuntimeConfig::default()).expect("Failed to create runtime");
 
         let value = JSValue::number(42.5);
 
