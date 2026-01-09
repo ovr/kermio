@@ -56,6 +56,19 @@ pub mod ffi {
         #[namespace = "facebook::jsi"]
         #[cxx_name = "BigInt"]
         type JSIBigInt;
+
+        // Helper functions for type conversions
+        #[namespace = "jsi_rs"]
+        fn value_as_object(
+            runtime: Pin<&mut JSIRuntime>,
+            value: &UniquePtr<JSIValue>,
+        ) -> UniquePtr<JSIObject>;
+
+        #[namespace = "jsi_rs"]
+        fn object_as_function(
+            runtime: Pin<&mut JSIRuntime>,
+            obj: &UniquePtr<JSIObject>,
+        ) -> UniquePtr<JSIFunction>;
     }
 
     // Helper functions for creating JSI objects
@@ -106,5 +119,27 @@ pub mod ffi {
 
         #[namespace = "jsi_rs"]
         fn string_to_utf8(runtime: Pin<&mut JSIRuntime>, str: &UniquePtr<JSIString>) -> String;
+
+        #[namespace = "jsi_rs"]
+        fn function_call(
+            runtime: Pin<&mut JSIRuntime>,
+            func: &UniquePtr<JSIFunction>,
+            argc: usize,
+        ) -> UniquePtr<JSIValue>;
+
+        #[namespace = "jsi_rs"]
+        fn function_call_with_this(
+            runtime: Pin<&mut JSIRuntime>,
+            func: &UniquePtr<JSIFunction>,
+            this_obj: &JSIObject,
+            argc: usize,
+        ) -> UniquePtr<JSIValue>;
+
+        #[namespace = "jsi_rs"]
+        fn function_call_as_constructor(
+            runtime: Pin<&mut JSIRuntime>,
+            func: &UniquePtr<JSIFunction>,
+            argc: usize,
+        ) -> UniquePtr<JSIValue>;
     }
 }

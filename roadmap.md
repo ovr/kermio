@@ -378,7 +378,7 @@ class Function : public Object {
 };
 ```
 
-**Status:** ❌ Not exposed
+**Status:** ✅ Partially exposed in jsi-rs as `JSFunction` (call methods only)
 
 #### Value
 
@@ -939,6 +939,12 @@ Low-level JSI bindings:
 ✅ **JSPropNameID**
 - `JSPropNameID::new(runtime, name)` - Create from UTF-8
 
+✅ **JSFunction**
+- `JSFunction::call(runtime, args)` - Call function
+- `JSFunction::call_with_this(runtime, this_obj, args)` - Call with explicit 'this'
+- `JSFunction::call_as_constructor(runtime, args)` - Call as constructor
+- `JSValue::as_function(runtime)` - Convert JSValue to JSFunction
+
 ---
 
 ## Implementation Roadmap
@@ -1049,7 +1055,7 @@ impl JSFunction {
 }
 ```
 
-**Why:** Calling JavaScript functions from Rust is essential.
+**Status:** ✅ Partially implemented (call methods only)
 
 #### Global Object Access
 
@@ -1288,10 +1294,10 @@ impl Runtime {
 - ✅ **Runtime creation and configuration** - Fully implemented
 - ✅ **Basic code evaluation** - eval, eval_with_result, bytecode
 - ✅ **Value type checking** - All JSValue type checks
-- ✅ **Basic object/array/string creation** - Factory methods only
-- ❌ **Value extraction** - Can't get data from JSValue
+- ✅ **Basic object/array/string/function creation** - Factory methods only
+- ⚠️ **Value extraction** - String extraction implemented, but JSValue extraction missing
 - ❌ **Property access** - Can't read/write object properties
-- ❌ **Function calls** - Can't call JavaScript functions
+- ✅ **Function calls** - call(), call_with_this(), call_as_constructor() implemented
 - ❌ **Host interop** - Can't expose Rust to JavaScript
 - ❌ **Advanced features** - No buffers, weak refs, array buffers, etc.
 
@@ -1304,4 +1310,4 @@ impl Runtime {
 5. **Phase 5** (Nice to have): Hermes-specific profiling, debugging, execution control
 6. **Phase 6** (Low priority): Microtasks, Symbols, Serialization, advanced features
 
-The first two phases are essential for basic JavaScript interop. Without them, the runtime can only evaluate code but cannot meaningfully interact with JavaScript objects or call functions.
+The first two phases are essential for basic JavaScript interop. Without them, the runtime can only evaluate code but cannot meaningfully interact with JavaScript objects or call functions. Note: Function calling is now supported, but property access and host interop are still needed.

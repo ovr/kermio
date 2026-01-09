@@ -1,6 +1,6 @@
 /// Represents a JavaScript value that can hold any JS type (undefined, null, boolean, number, string, object, etc.)
 pub struct JSValue {
-    inner: cxx::UniquePtr<crate::sys::ffi::JSIValue>,
+    pub(crate) inner: cxx::UniquePtr<crate::sys::ffi::JSIValue>,
 }
 
 impl JSValue {
@@ -38,9 +38,13 @@ impl JSValue {
         self.inner.as_ref().expect("JSValue inner pointer is null")
     }
 
+    pub(crate) fn inner(&self) -> &cxx::UniquePtr<crate::sys::ffi::JSIValue> {
+        &self.inner
+    }
+
     /// Access the inner UniquePtr for advanced usage
     #[cfg(feature = "unsafe")]
-    pub fn inner(&self) -> &cxx::UniquePtr<crate::sys::ffi::JSIValue> {
+    pub fn inner_unsafe(&self) -> &cxx::UniquePtr<crate::sys::ffi::JSIValue> {
         &self.inner
     }
 
@@ -66,5 +70,16 @@ impl JSValue {
 
     pub fn is_object(&self) -> bool {
         self.as_ref().isObject()
+    }
+
+    pub fn as_function(&self, runtime: &mut crate::JSRuntime) -> Option<crate::JSFunction> {
+        if !self.is_object() {
+            return None;
+        }
+
+        let obj = crate::sys::ffi::value_as_object(runtime.pin_mut(), self.inner());
+        let func = crate::sys::ffi::object_as_function(runtime.pin_mut(), &obj);
+
+        Some(crate::JSFunction { inner: func })
     }
 }
