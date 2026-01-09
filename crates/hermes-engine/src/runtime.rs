@@ -2,6 +2,7 @@ use cxx::{SharedPtr, UniquePtr};
 
 use crate::bridge::ffi;
 use crate::config::RuntimeConfig;
+use crate::error::Result;
 use crate::jsi::JSValue;
 
 /// Prepared JavaScript code optimized for repeated execution.
@@ -24,7 +25,7 @@ pub struct Runtime {
 
 impl Runtime {
     /// Create a new Hermes runtime with the specified configuration.
-    pub fn new(config: RuntimeConfig) -> Result<Self, String> {
+    pub fn new(config: RuntimeConfig) -> Result<Self> {
         let handle = ffi::create_hermes_runtime(config.as_ref());
         Ok(Self { handle })
     }
@@ -37,8 +38,8 @@ impl Runtime {
     ///
     /// # Returns
     /// * `Ok(())` on success
-    /// * `Err(String)` with error message on failure
-    pub fn eval(&mut self, source: &str, source_url: Option<&str>) -> Result<(), String> {
+    /// * `Err(Error)` with error details on failure
+    pub fn eval(&mut self, source: &str, source_url: Option<&str>) -> Result<()> {
         self.eval_with_result(source, source_url).map(|_| ())
     }
 
@@ -50,16 +51,11 @@ impl Runtime {
     ///
     /// # Returns
     /// * `Ok(JSValue)` with the result value
-    /// * `Err(String)` with error message on failure
-    pub fn eval_with_result(
-        &mut self,
-        source: &str,
-        source_url: Option<&str>,
-    ) -> Result<JSValue, String> {
+    /// * `Err(Error)` with error details on failure
+    pub fn eval_with_result(&mut self, source: &str, source_url: Option<&str>) -> Result<JSValue> {
         let url = source_url.unwrap_or("eval");
 
-        let value_ptr =
-            ffi::eval_js(self.handle.pin_mut(), source, url).map_err(|e| e.to_string())?;
+        let value_ptr = ffi::eval_js(self.handle.pin_mut(), source, url)?;
 
         // SAFETY: Since JSIValue and jsi_rs::sys::ffi::JSIValue are the same type (both facebook::jsi::Value),
         // we can safely transmute the UniquePtr
@@ -103,10 +99,10 @@ impl Runtime {
     ///
     /// # Returns
     /// * `Ok(Vec<u8>)` with bytecode on success
-    /// * `Err(String)` with error message on failure
-    pub fn compile_to_bytecode(source: &str, source_url: Option<&str>) -> Result<Vec<u8>, String> {
+    /// * `Err(Error)` with error details on failure
+    pub fn compile_to_bytecode(source: &str, source_url: Option<&str>) -> Result<Vec<u8>> {
         let url = source_url.unwrap_or("bundle");
-        ffi::compile_js_to_bytecode(source, url, true).map_err(|e| e.to_string())
+        Ok(ffi::compile_js_to_bytecode(source, url, true)?)
     }
 
     /// Evaluate pre-compiled Hermes bytecode.
@@ -116,9 +112,9 @@ impl Runtime {
     ///
     /// # Returns
     /// * `Ok(())` on success
-    /// * `Err(String)` with error message on failure
-    pub fn eval_bytecode(&mut self, bytecode: &[u8]) -> Result<(), String> {
-        ffi::eval_bytecode(self.handle.pin_mut(), bytecode).map_err(|e| e.to_string())
+    /// * `Err(Error)` with error details on failure
+    pub fn eval_bytecode(&mut self, bytecode: &[u8]) -> Result<()> {
+        Ok(ffi::eval_bytecode(self.handle.pin_mut(), bytecode)?)
     }
 
     /// Prepare JavaScript code for optimized repeated execution.
@@ -134,7 +130,7 @@ impl Runtime {
     ///
     /// # Returns
     /// * `Ok(PreparedJavaScript)` - Prepared JavaScript ready for execution
-    /// * `Err(String)` - Error message if preparation fails
+    /// * `Err(Error)` - Error details if preparation fails
     ///
     /// # Example
     /// ```no_run
@@ -145,16 +141,15 @@ impl Runtime {
     /// // Execute the prepared code multiple times
     /// let result1 = runtime.evaluate_prepared_javascript(&prepared)?;
     /// let result2 = runtime.evaluate_prepared_javascript(&prepared)?;
-    /// # Ok::<(), String>(())
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn prepare_javascript(
         &mut self,
         source: &str,
         source_url: Option<&str>,
-    ) -> Result<PreparedJavaScript, String> {
+    ) -> Result<PreparedJavaScript> {
         let url = source_url.unwrap_or("prepared");
-        let handle = ffi::prepare_javascript(self.handle.pin_mut(), source, url)
-            .map_err(|e| e.to_string())?;
+        let handle = ffi::prepare_javascript(self.handle.pin_mut(), source, url)?;
 
         Ok(PreparedJavaScript { handle })
     }
@@ -170,7 +165,7 @@ impl Runtime {
     ///
     /// # Returns
     /// * `Ok(JSValue)` - The result of executing the prepared code
-    /// * `Err(String)` - Error message if execution fails
+    /// * `Err(Error)` - Error details if execution fails
     ///
     /// # Example
     /// ```no_run
@@ -180,14 +175,13 @@ impl Runtime {
     ///
     /// let result = runtime.evaluate_prepared_javascript(&prepared)?;
     /// assert!(result.is_string());
-    /// # Ok::<(), String>(())
+    /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
     pub fn evaluate_prepared_javascript(
         &mut self,
         prepared: &PreparedJavaScript,
-    ) -> Result<JSValue, String> {
-        let value_ptr = ffi::evaluate_prepared_javascript(self.handle.pin_mut(), &prepared.handle)
-            .map_err(|e| e.to_string())?;
+    ) -> Result<JSValue> {
+        let value_ptr = ffi::evaluate_prepared_javascript(self.handle.pin_mut(), &prepared.handle)?;
 
         // SAFETY: Since JSIValue and jsi_rs::sys::ffi::JSIValue are the same type (both facebook::jsi::Value),
         // we can safely transmute the UniquePtr

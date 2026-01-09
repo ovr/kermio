@@ -4,6 +4,9 @@ pub use jsi_rs as jsi;
 // CXX bridge module
 mod bridge;
 
+mod error;
+pub use error::{Error, Result};
+
 mod config;
 pub use config::{RuntimeConfig, RuntimeConfigBuilder};
 
