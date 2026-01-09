@@ -97,6 +97,9 @@ pub mod ffi {
         include!("jsi-rs/src/bridge.h");
 
         #[namespace = "jsi_rs"]
+        type ValueVec;
+
+        #[namespace = "jsi_rs"]
         fn create_object(runtime: Pin<&mut JSIRuntime>) -> UniquePtr<JSIObject>;
 
         #[namespace = "jsi_rs"]
@@ -142,10 +145,20 @@ pub mod ffi {
         fn string_to_utf8(runtime: Pin<&mut JSIRuntime>, str: &UniquePtr<JSIString>) -> String;
 
         #[namespace = "jsi_rs"]
+        fn value_vec_create() -> UniquePtr<ValueVec>;
+
+        #[namespace = "jsi_rs"]
+        fn value_vec_push(
+            vec: Pin<&mut ValueVec>,
+            runtime: Pin<&mut JSIRuntime>,
+            value: &UniquePtr<JSIValue>,
+        );
+
+        #[namespace = "jsi_rs"]
         fn function_call(
             runtime: Pin<&mut JSIRuntime>,
             func: &UniquePtr<JSIFunction>,
-            argc: usize,
+            args: &ValueVec,
         ) -> UniquePtr<JSIValue>;
 
         #[namespace = "jsi_rs"]
@@ -153,14 +166,14 @@ pub mod ffi {
             runtime: Pin<&mut JSIRuntime>,
             func: &UniquePtr<JSIFunction>,
             this_obj: &JSIObject,
-            argc: usize,
+            args: &ValueVec,
         ) -> UniquePtr<JSIValue>;
 
         #[namespace = "jsi_rs"]
         fn function_call_as_constructor(
             runtime: Pin<&mut JSIRuntime>,
             func: &UniquePtr<JSIFunction>,
-            argc: usize,
+            args: &ValueVec,
         ) -> UniquePtr<JSIValue>;
     }
 }

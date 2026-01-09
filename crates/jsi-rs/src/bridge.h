@@ -8,6 +8,10 @@
 
 namespace jsi_rs {
 
+struct ValueVec {
+    std::vector<facebook::jsi::Value> values;
+};
+
 inline std::unique_ptr<facebook::jsi::Object> create_object(facebook::jsi::Runtime& runtime) {
     return std::make_unique<facebook::jsi::Object>(runtime);
 }
@@ -87,54 +91,40 @@ inline std::unique_ptr<facebook::jsi::Function> object_as_function(facebook::jsi
     return std::make_unique<facebook::jsi::Function>(std::move(func));
 }
 
+inline std::unique_ptr<ValueVec> value_vec_create() {
+    return std::make_unique<ValueVec>();
+}
+
+inline void value_vec_push(
+    ValueVec& vec,
+    facebook::jsi::Runtime& runtime,
+    const std::unique_ptr<facebook::jsi::Value>& value) {
+    vec.values.push_back(facebook::jsi::Value(runtime, *value));
+}
+
 inline std::unique_ptr<facebook::jsi::Value> function_call(
     facebook::jsi::Runtime& runtime,
     const std::unique_ptr<facebook::jsi::Function>& func,
-    size_t argc) {
-    std::vector<facebook::jsi::Value> args;
-
-    // Disambiguate the call by using a function pointer to the non-template overload
-    facebook::jsi::Value (facebook::jsi::Function::*call_ptr)(
-        facebook::jsi::Runtime&,
-        const facebook::jsi::Value*,
-        size_t) const = &facebook::jsi::Function::call;
-
+    const ValueVec& args) {
     return std::make_unique<facebook::jsi::Value>(
-        (func.get()->*call_ptr)(runtime, args.data(), argc));
+        func->call(runtime, args.values.data(), args.values.size()));
 }
 
 inline std::unique_ptr<facebook::jsi::Value> function_call_with_this(
     facebook::jsi::Runtime& runtime,
     const std::unique_ptr<facebook::jsi::Function>& func,
     const facebook::jsi::Object& this_obj,
-    size_t argc) {
-    std::vector<facebook::jsi::Value> args;
-
-    // Disambiguate the call by using a function pointer to the non-template overload
-    facebook::jsi::Value (facebook::jsi::Function::*call_ptr)(
-        facebook::jsi::Runtime&,
-        const facebook::jsi::Object&,
-        const facebook::jsi::Value*,
-        size_t) const = &facebook::jsi::Function::callWithThis;
-
+    const ValueVec& args) {
     return std::make_unique<facebook::jsi::Value>(
-        (func.get()->*call_ptr)(runtime, this_obj, args.data(), argc));
+        func->callWithThis(runtime, this_obj, args.values.data(), args.values.size()));
 }
 
 inline std::unique_ptr<facebook::jsi::Value> function_call_as_constructor(
     facebook::jsi::Runtime& runtime,
     const std::unique_ptr<facebook::jsi::Function>& func,
-    size_t argc) {
-    std::vector<facebook::jsi::Value> args;
-
-    // Disambiguate the call by using a function pointer to the non-template overload
-    facebook::jsi::Value (facebook::jsi::Function::*call_ptr)(
-        facebook::jsi::Runtime&,
-        const facebook::jsi::Value*,
-        size_t) const = &facebook::jsi::Function::callAsConstructor;
-
+    const ValueVec& args) {
     return std::make_unique<facebook::jsi::Value>(
-        (func.get()->*call_ptr)(runtime, args.data(), argc));
+        func->callAsConstructor(runtime, args.values.data(), args.values.size()));
 }
 
 } // namespace jsi_rs
