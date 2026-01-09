@@ -1,5 +1,5 @@
 mod tests {
-    use hermes_engine::jsi::{JSFunction, JSValue};
+    use hermes_engine::jsi::JSValue;
     use hermes_engine::{Runtime, RuntimeConfig};
 
     #[test]

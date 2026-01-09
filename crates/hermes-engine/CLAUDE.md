@@ -108,10 +108,17 @@ The crate's `build.rs` configures Hermes with these settings:
 
 ## Testing
 
-Run hermes-rs tests:
+Run hermes-engine tests:
 ```bash
-cargo test -p hermes-rs
+cargo test -p hermes-engine
 ```
+
+Run jsi-rs integration tests (located in this crate):
+```bash
+cargo test -p hermes-engine --test jsi_rs
+```
+
+Note: jsi-rs is a low-level interface layer without an engine implementation, so all jsi-rs tests are located in `tests/jsi-rs/` directory and use hermes-engine's Runtime as the concrete JSI implementation.
 
 ## Example Workflow
 

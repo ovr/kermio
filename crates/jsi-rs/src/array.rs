@@ -2,7 +2,7 @@ use crate::JSRuntime;
 
 /// Wrapper around facebook::jsi::Array providing a safe Rust API
 pub struct JSArray {
-    inner: cxx::UniquePtr<crate::sys::ffi::JSIArray>,
+    pub(crate) inner: cxx::UniquePtr<crate::sys::ffi::JSIArray>,
 }
 
 impl JSArray {

@@ -20,6 +20,6 @@ pub use bigint::JSBigInt;
 pub use function::JSFunction;
 pub use object::JSObject;
 pub use propnameid::JSPropNameID;
-pub use runtime::JSRuntime;
+pub use runtime::{IntoJSIBigInt, JSRuntime};
 pub use string::JSString;
 pub use value::JSValue;

@@ -2,7 +2,7 @@ use crate::JSRuntime;
 
 /// Wrapper around facebook::jsi::Object providing a safe Rust API
 pub struct JSObject {
-    inner: cxx::UniquePtr<crate::sys::ffi::JSIObject>,
+    pub(crate) inner: cxx::UniquePtr<crate::sys::ffi::JSIObject>,
 }
 
 impl JSObject {

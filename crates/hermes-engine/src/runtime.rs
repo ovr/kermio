@@ -3,7 +3,7 @@ use cxx::{SharedPtr, UniquePtr};
 use crate::bridge::ffi;
 use crate::config::RuntimeConfig;
 use crate::error::Result;
-use crate::jsi::JSValue;
+use crate::jsi::{self, JSValue};
 
 /// Prepared JavaScript code optimized for repeated execution.
 ///
@@ -82,6 +82,46 @@ impl Runtime {
             let ptr = jsi_ref.as_mut().get_unchecked_mut();
             jsi_rs::JSRuntime::from_raw(ptr as *mut _ as *mut jsi_rs::sys::ffi::JSIRuntime)
         }
+    }
+
+    pub fn create_undefined() -> jsi::JSValue {
+        jsi::JSRuntime::create_undefined()
+    }
+
+    pub fn create_null() -> jsi::JSValue {
+        jsi::JSRuntime::create_null()
+    }
+
+    pub fn create_bool(value: bool) -> jsi::JSValue {
+        jsi::JSRuntime::create_bool(value)
+    }
+
+    pub fn create_number(value: f64) -> jsi::JSValue {
+        jsi::JSRuntime::create_number(value)
+    }
+
+    pub fn create_string(&mut self, data: &str) -> jsi::JSString {
+        self.jsi().create_string(data)
+    }
+
+    pub fn create_object(&mut self) -> jsi::JSObject {
+        self.jsi().create_object()
+    }
+
+    pub fn create_array_empty(&mut self) -> jsi::JSArray {
+        self.jsi().create_array_empty()
+    }
+
+    pub fn create_array(&mut self, length: usize) -> jsi::JSArray {
+        self.jsi().create_array(length)
+    }
+
+    pub fn create_prop_name_id(&mut self, name: &str) -> jsi::JSPropNameID {
+        self.jsi().create_prop_name_id(name)
+    }
+
+    pub fn create_bigint<T: jsi::IntoJSIBigInt>(&mut self, value: T) -> jsi::JSBigInt {
+        self.jsi().create_bigint(value)
     }
 
     /// Compile JavaScript source to Hermes bytecode.

@@ -31,6 +31,15 @@ The `build.rs` file:
 - Includes JSI headers from hermes-vendor
 - Requires C++17 support
 
+### Testing
+
+Since jsi-rs is a low-level interface layer without an engine implementation, it cannot be tested in isolation. All jsi-rs integration tests are located in `crates/hermes-engine/tests/jsi-rs/` where they use hermes-engine's Runtime as the concrete JSI implementation.
+
+To run jsi-rs tests:
+```bash
+cargo test -p hermes-engine --test jsi_rs
+```
+
 ## Current Implementation Status
 
 ### Exposed Types

@@ -2,7 +2,7 @@ use crate::JSRuntime;
 
 /// Wrapper around facebook::jsi::PropNameID providing a safe Rust API
 pub struct JSPropNameID {
-    inner: cxx::UniquePtr<crate::sys::ffi::JSIPropNameID>,
+    pub(crate) inner: cxx::UniquePtr<crate::sys::ffi::JSIPropNameID>,
 }
 
 impl JSPropNameID {

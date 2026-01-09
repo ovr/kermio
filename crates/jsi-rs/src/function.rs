@@ -1,5 +1,3 @@
-use std::pin::Pin;
-
 use crate::sys::ffi;
 use crate::value::JSValue;
 use crate::JSRuntime;
@@ -42,7 +40,7 @@ impl JSFunction {
         let result = ffi::function_call_with_this(
             runtime.pin_mut(),
             &self.inner,
-            this_obj.inner().as_ref().expect("JSObject inner is null"),
+            this_obj.inner.as_ref().expect("JSObject inner is null"),
             0,
         );
 

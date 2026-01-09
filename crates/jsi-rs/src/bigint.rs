@@ -2,7 +2,7 @@ use crate::JSRuntime;
 
 /// Wrapper around facebook::jsi::BigInt providing a safe Rust API
 pub struct JSBigInt {
-    inner: cxx::UniquePtr<crate::sys::ffi::JSIBigInt>,
+    pub(crate) inner: cxx::UniquePtr<crate::sys::ffi::JSIBigInt>,
 }
 
 impl JSBigInt {
