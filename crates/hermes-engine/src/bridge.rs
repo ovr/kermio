@@ -16,6 +16,16 @@ pub mod ffi {
         #[namespace = "facebook::hermes"]
         type HermesRuntime;
 
+        // PreparedJavaScript - maps to facebook::jsi::PreparedJavaScript
+        #[namespace = "facebook::jsi"]
+        type PreparedJavaScript;
+
+        // JSI Value - maps to facebook::jsi::Value
+        // We use the same type name as jsi-rs for consistency
+        #[namespace = "facebook::jsi"]
+        #[cxx_name = "Value"]
+        type JSIValue;
+
         // Create RuntimeConfig with all settings
         fn create_runtime_config(
             init_heap_size: u32,
@@ -36,15 +46,12 @@ pub mod ffi {
         // Create a new Hermes runtime
         fn create_hermes_runtime(config: &RuntimeConfig) -> UniquePtr<HermesRuntime>;
 
-        // Evaluate JavaScript source code
-        // Returns error string on failure, empty string on success
-        // result_out will contain a pointer to jsi::Value if provided
-        unsafe fn eval_js(
+        // Evaluate JavaScript source code and return the result
+        fn eval_js(
             runtime: Pin<&mut HermesRuntime>,
             source: &str,
             source_url: &str,
-            result_out: *mut *mut u8,
-        ) -> Result<()>;
+        ) -> Result<UniquePtr<JSIValue>>;
 
         // Compile JavaScript to bytecode
         fn compile_js_to_bytecode(
@@ -61,5 +68,18 @@ pub mod ffi {
 
         // Get the underlying JSI runtime pointer
         unsafe fn get_jsi_runtime(runtime: Pin<&mut HermesRuntime>) -> *mut u8;
+
+        // Prepare JavaScript for optimized execution
+        fn prepare_javascript(
+            runtime: Pin<&mut HermesRuntime>,
+            source: &str,
+            source_url: &str,
+        ) -> Result<SharedPtr<PreparedJavaScript>>;
+
+        // Evaluate prepared JavaScript
+        fn evaluate_prepared_javascript(
+            runtime: Pin<&mut HermesRuntime>,
+            prepared: &SharedPtr<PreparedJavaScript>,
+        ) -> Result<UniquePtr<JSIValue>>;
     }
 }

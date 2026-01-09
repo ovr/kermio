@@ -8,7 +8,7 @@ mod config;
 pub use config::{RuntimeConfig, RuntimeConfigBuilder};
 
 mod runtime;
-pub use runtime::Runtime;
+pub use runtime::{PreparedJavaScript, Runtime};
 
 #[cfg(test)]
 mod tests {
@@ -118,5 +118,84 @@ mod tests {
 
         let runtime = Runtime::new(config).expect("Failed to create runtime with heap settings");
         drop(runtime);
+    }
+
+    #[test]
+    fn test_prepare_javascript() {
+        let mut runtime = Runtime::new(RuntimeConfig::default()).expect("Failed to create runtime");
+
+        let prepared = runtime
+            .prepare_javascript("2 + 2", Some("calc.js"))
+            .expect("Failed to prepare JavaScript");
+
+        let result = runtime
+            .evaluate_prepared_javascript(&prepared)
+            .expect("Failed to evaluate prepared JavaScript");
+
+        assert!(result.is_number());
+    }
+
+    #[test]
+    fn test_prepare_javascript_multiple_executions() {
+        let mut runtime = Runtime::new(RuntimeConfig::default()).expect("Failed to create runtime");
+
+        let prepared = runtime
+            .prepare_javascript("Math.random()", None)
+            .expect("Failed to prepare JavaScript");
+
+        // Execute multiple times - should work each time
+        let result1 = runtime
+            .evaluate_prepared_javascript(&prepared)
+            .expect("First execution failed");
+        assert!(result1.is_number());
+
+        let result2 = runtime
+            .evaluate_prepared_javascript(&prepared)
+            .expect("Second execution failed");
+        assert!(result2.is_number());
+
+        let result3 = runtime
+            .evaluate_prepared_javascript(&prepared)
+            .expect("Third execution failed");
+        assert!(result3.is_number());
+    }
+
+    #[test]
+    fn test_prepare_javascript_with_string() {
+        let mut runtime = Runtime::new(RuntimeConfig::default()).expect("Failed to create runtime");
+
+        let prepared = runtime
+            .prepare_javascript("'hello ' + 'world'", None)
+            .expect("Failed to prepare JavaScript");
+
+        let result = runtime
+            .evaluate_prepared_javascript(&prepared)
+            .expect("Failed to evaluate prepared JavaScript");
+
+        assert!(result.is_string());
+    }
+
+    #[test]
+    fn test_prepare_javascript_syntax_error() {
+        let mut runtime = Runtime::new(RuntimeConfig::default()).expect("Failed to create runtime");
+
+        let result = runtime.prepare_javascript("this is invalid javascript", None);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_prepare_javascript_runtime_error() {
+        let mut runtime = Runtime::new(RuntimeConfig::default()).expect("Failed to create runtime");
+
+        // Preparation should succeed (syntax is valid)
+        let prepared = runtime
+            .prepare_javascript("throw new Error('test error')", None)
+            .expect("Failed to prepare JavaScript");
+
+        // But execution should fail
+        match runtime.evaluate_prepared_javascript(&prepared) {
+            Ok(_) => panic!("Expected error but got success"),
+            Err(error_msg) => assert!(error_msg.contains("test error")),
+        }
     }
 }

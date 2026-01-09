@@ -67,12 +67,11 @@ inline std::unique_ptr<facebook::hermes::HermesRuntime> create_hermes_runtime(
     return facebook::hermes::makeHermesRuntime(config);
 }
 
-// Evaluate JavaScript source code
-inline void eval_js(
+// Evaluate JavaScript source code and return the result
+inline std::unique_ptr<facebook::jsi::Value> eval_js(
     facebook::hermes::HermesRuntime& runtime,
     rust::Str source,
-    rust::Str source_url,
-    uint8_t** result_out) {
+    rust::Str source_url) {
 
     try {
         std::string source_str(source.data(), source.size());
@@ -82,11 +81,8 @@ inline void eval_js(
             std::make_unique<facebook::jsi::StringBuffer>(source_str),
             url_str);
 
-        // Return the jsi::Value as a pointer if requested
-        if (result_out) {
-            // Allocate a new jsi::Value and move the result into it
-            *result_out = reinterpret_cast<uint8_t*>(new facebook::jsi::Value(std::move(result)));
-        }
+        // Return the jsi::Value wrapped in a unique_ptr
+        return std::make_unique<facebook::jsi::Value>(std::move(result));
     } catch (const facebook::jsi::JSError& e) {
         std::string error_msg = "JSError: " + e.getMessage();
         throw std::runtime_error(error_msg);
@@ -176,10 +172,48 @@ inline uint8_t* get_jsi_runtime(facebook::hermes::HermesRuntime& runtime) {
     return reinterpret_cast<uint8_t*>(&runtime);
 }
 
-// Free a JSI value pointer
-inline void free_jsi_value(uint8_t* value) {
-    if (value) {
-        delete reinterpret_cast<facebook::jsi::Value*>(value);
+// Prepare JavaScript for optimized execution
+inline std::shared_ptr<facebook::jsi::PreparedJavaScript> prepare_javascript(
+    facebook::hermes::HermesRuntime& runtime,
+    rust::Str source,
+    rust::Str source_url) {
+
+    try {
+        std::string source_str(source.data(), source.size());
+        std::string url_str(source_url.data(), source_url.size());
+
+        auto buffer = std::make_shared<facebook::jsi::StringBuffer>(source_str);
+        auto prepared = runtime.prepareJavaScript(buffer, url_str);
+
+        // CXX doesn't support const in SharedPtr, so we need to cast it away
+        return std::const_pointer_cast<facebook::jsi::PreparedJavaScript>(prepared);
+    } catch (const facebook::jsi::JSError& e) {
+        std::string error_msg = "JSError: " + e.getMessage();
+        throw std::runtime_error(error_msg);
+    } catch (const std::exception& e) {
+        std::string error_msg = "Error: " + std::string(e.what());
+        throw std::runtime_error(error_msg);
+    }
+}
+
+// Evaluate prepared JavaScript and return the result
+inline std::unique_ptr<facebook::jsi::Value> evaluate_prepared_javascript(
+    facebook::hermes::HermesRuntime& runtime,
+    const std::shared_ptr<facebook::jsi::PreparedJavaScript>& prepared) {
+
+    try {
+        // The evaluatePreparedJavaScript expects const PreparedJavaScript, so cast it back
+        auto const_prepared = std::const_pointer_cast<const facebook::jsi::PreparedJavaScript>(prepared);
+        auto result = runtime.evaluatePreparedJavaScript(const_prepared);
+
+        // Return the jsi::Value wrapped in a unique_ptr
+        return std::make_unique<facebook::jsi::Value>(std::move(result));
+    } catch (const facebook::jsi::JSError& e) {
+        std::string error_msg = "JSError: " + e.getMessage();
+        throw std::runtime_error(error_msg);
+    } catch (const std::exception& e) {
+        std::string error_msg = "Error: " + std::string(e.what());
+        throw std::runtime_error(error_msg);
     }
 }
 

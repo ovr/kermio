@@ -1,9 +1,21 @@
-use cxx::UniquePtr;
-use std::ptr;
+use cxx::{SharedPtr, UniquePtr};
 
 use crate::bridge::ffi;
 use crate::config::RuntimeConfig;
 use crate::jsi::JSValue;
+
+/// Prepared JavaScript code optimized for repeated execution.
+///
+/// Created via `Runtime::prepare_javascript()`, this represents JavaScript code
+/// that has been parsed and optimized by the runtime. The prepared code can be
+/// executed multiple times efficiently using `Runtime::evaluate_prepared_javascript()`.
+///
+/// The prepared form is runtime-specific and optimized for the runtime configuration
+/// used when it was created. It can be shared across multiple runtime instances of
+/// the same type for memory efficiency.
+pub struct PreparedJavaScript {
+    handle: SharedPtr<ffi::PreparedJavaScript>,
+}
 
 /// A Hermes JavaScript runtime instance.
 pub struct Runtime {
@@ -45,24 +57,16 @@ impl Runtime {
         source_url: Option<&str>,
     ) -> Result<JSValue, String> {
         let url = source_url.unwrap_or("eval");
-        let mut result_ptr: *mut u8 = ptr::null_mut();
 
-        unsafe {
-            ffi::eval_js(
-                self.handle.pin_mut(),
-                source,
-                url,
-                &mut result_ptr as *mut *mut u8,
-            )
-            .map_err(|e| e.to_string())?;
-        }
+        let value_ptr =
+            ffi::eval_js(self.handle.pin_mut(), source, url).map_err(|e| e.to_string())?;
 
-        if result_ptr.is_null() {
-            return Err("Evaluation succeeded but no result was returned".to_string());
-        }
-
-        let js_value =
-            unsafe { JSValue::from_raw(result_ptr as *mut crate::jsi::sys::ffi::JSIValue) };
+        // SAFETY: Since JSIValue and jsi_rs::sys::ffi::JSIValue are the same type (both facebook::jsi::Value),
+        // we can safely transmute the UniquePtr
+        let js_value = unsafe {
+            let raw_ptr = cxx::UniquePtr::into_raw(value_ptr);
+            JSValue::from_raw(raw_ptr as *mut crate::jsi::sys::ffi::JSIValue)
+        };
 
         Ok(js_value)
     }
@@ -115,6 +119,84 @@ impl Runtime {
     /// * `Err(String)` with error message on failure
     pub fn eval_bytecode(&mut self, bytecode: &[u8]) -> Result<(), String> {
         ffi::eval_bytecode(self.handle.pin_mut(), bytecode).map_err(|e| e.to_string())
+    }
+
+    /// Prepare JavaScript code for optimized repeated execution.
+    ///
+    /// This parses and optimizes the JavaScript code, returning a `PreparedJavaScript`
+    /// object that can be executed multiple times efficiently. This is useful when you
+    /// need to run the same code repeatedly, as the preparation cost is amortized across
+    /// all executions.
+    ///
+    /// # Arguments
+    /// * `source` - JavaScript source code to prepare
+    /// * `source_url` - Optional URL/name for the source (used in error messages)
+    ///
+    /// # Returns
+    /// * `Ok(PreparedJavaScript)` - Prepared JavaScript ready for execution
+    /// * `Err(String)` - Error message if preparation fails
+    ///
+    /// # Example
+    /// ```no_run
+    /// # use hermes_engine::{Runtime, RuntimeConfig};
+    /// let mut runtime = Runtime::new(RuntimeConfig::default())?;
+    /// let prepared = runtime.prepare_javascript("2 + 2", Some("calc.js"))?;
+    ///
+    /// // Execute the prepared code multiple times
+    /// let result1 = runtime.evaluate_prepared_javascript(&prepared)?;
+    /// let result2 = runtime.evaluate_prepared_javascript(&prepared)?;
+    /// # Ok::<(), String>(())
+    /// ```
+    pub fn prepare_javascript(
+        &mut self,
+        source: &str,
+        source_url: Option<&str>,
+    ) -> Result<PreparedJavaScript, String> {
+        let url = source_url.unwrap_or("prepared");
+        let handle = ffi::prepare_javascript(self.handle.pin_mut(), source, url)
+            .map_err(|e| e.to_string())?;
+
+        Ok(PreparedJavaScript { handle })
+    }
+
+    /// Evaluate prepared JavaScript code and return the result.
+    ///
+    /// Executes JavaScript code that was previously prepared using `prepare_javascript()`.
+    /// This is more efficient than calling `eval_with_result()` repeatedly with the same
+    /// source code, as the parsing and optimization has already been done.
+    ///
+    /// # Arguments
+    /// * `prepared` - The prepared JavaScript to execute
+    ///
+    /// # Returns
+    /// * `Ok(JSValue)` - The result of executing the prepared code
+    /// * `Err(String)` - Error message if execution fails
+    ///
+    /// # Example
+    /// ```no_run
+    /// # use hermes_engine::{Runtime, RuntimeConfig};
+    /// let mut runtime = Runtime::new(RuntimeConfig::default())?;
+    /// let prepared = runtime.prepare_javascript("'hello' + ' world'", None)?;
+    ///
+    /// let result = runtime.evaluate_prepared_javascript(&prepared)?;
+    /// assert!(result.is_string());
+    /// # Ok::<(), String>(())
+    /// ```
+    pub fn evaluate_prepared_javascript(
+        &mut self,
+        prepared: &PreparedJavaScript,
+    ) -> Result<JSValue, String> {
+        let value_ptr = ffi::evaluate_prepared_javascript(self.handle.pin_mut(), &prepared.handle)
+            .map_err(|e| e.to_string())?;
+
+        // SAFETY: Since JSIValue and jsi_rs::sys::ffi::JSIValue are the same type (both facebook::jsi::Value),
+        // we can safely transmute the UniquePtr
+        let js_value = unsafe {
+            let raw_ptr = cxx::UniquePtr::into_raw(value_ptr);
+            JSValue::from_raw(raw_ptr as *mut crate::jsi::sys::ffi::JSIValue)
+        };
+
+        Ok(js_value)
     }
 }
 
