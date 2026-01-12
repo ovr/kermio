@@ -163,7 +163,7 @@ class BigInt {
 };
 ```
 
-**Status:** ✅ Exposed in jsi-rs as `JSBigInt::from_i64()` and `JSBigInt::from_u64()`
+**Status:** ✅ Exposed in jsi-rs as `JSBigInt::from_i64()`, `JSBigInt::from_u64()`, `JSBigInt::as_string()`, `JSBigInt::as_string_opt(radix)`, and `JSBigInt::to_string()`
 
 #### String
 
@@ -935,6 +935,9 @@ Low-level JSI bindings:
 ✅ **JSBigInt**
 - `JSBigInt::from_i64(runtime, value)` - Create from i64
 - `JSBigInt::from_u64(runtime, value)` - Create from u64
+- `JSBigInt::as_string(runtime)` - Convert to JSString (radix 10)
+- `JSBigInt::as_string_opt(runtime, radix)` - Convert to JSString with custom radix (2-36)
+- `JSBigInt::to_string(runtime)` - Convert directly to Rust String (radix 10)
 
 ✅ **JSPropNameID**
 - `JSPropNameID::new(runtime, name)` - Create from UTF-8
@@ -1294,8 +1297,8 @@ impl Runtime {
 - ✅ **Runtime creation and configuration** - Fully implemented
 - ✅ **Basic code evaluation** - eval, eval_with_result, bytecode
 - ✅ **Value type checking** - All JSValue type checks
-- ✅ **Basic object/array/string/function creation** - Factory methods only
-- ⚠️ **Value extraction** - String extraction implemented, but JSValue extraction missing
+- ✅ **Basic object/array/string/function/bigint creation** - Factory methods only
+- ⚠️ **Value extraction** - String and BigInt extraction implemented, but other JSValue extraction missing
 - ❌ **Property access** - Can't read/write object properties
 - ✅ **Function calls** - call(), call_with_this(), call_as_constructor() implemented
 - ❌ **Host interop** - Can't expose Rust to JavaScript

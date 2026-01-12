@@ -145,6 +145,13 @@ pub mod ffi {
         fn string_to_utf8(runtime: Pin<&mut JSIRuntime>, str: &UniquePtr<JSIString>) -> String;
 
         #[namespace = "jsi_rs"]
+        fn bigint_to_string(
+            runtime: Pin<&mut JSIRuntime>,
+            bigint: &UniquePtr<JSIBigInt>,
+            radix: i32,
+        ) -> Result<UniquePtr<JSIString>>;
+
+        #[namespace = "jsi_rs"]
         fn value_vec_create() -> UniquePtr<ValueVec>;
 
         #[namespace = "jsi_rs"]
