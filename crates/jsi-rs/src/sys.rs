@@ -182,5 +182,23 @@ pub mod ffi {
             func: &UniquePtr<JSIFunction>,
             args: &ValueVec,
         ) -> UniquePtr<JSIValue>;
+
+        #[namespace = "jsi_rs"]
+        fn array_get_value_at_index(
+            runtime: Pin<&mut JSIRuntime>,
+            array: &UniquePtr<JSIArray>,
+            index: usize,
+        ) -> UniquePtr<JSIValue>;
+
+        #[namespace = "jsi_rs"]
+        fn array_set_value_at_index(
+            runtime: Pin<&mut JSIRuntime>,
+            array: &UniquePtr<JSIArray>,
+            index: usize,
+            value: &UniquePtr<JSIValue>,
+        );
+
+        #[namespace = "jsi_rs"]
+        fn array_size(runtime: Pin<&mut JSIRuntime>, array: &UniquePtr<JSIArray>) -> usize;
     }
 }

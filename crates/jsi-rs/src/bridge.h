@@ -135,4 +135,26 @@ inline std::unique_ptr<facebook::jsi::Value> function_call_as_constructor(
         func->callAsConstructor(runtime, args.values.data(), args.values.size()));
 }
 
+inline std::unique_ptr<facebook::jsi::Value> array_get_value_at_index(
+    facebook::jsi::Runtime& runtime,
+    const std::unique_ptr<facebook::jsi::Array>& array,
+    size_t index) {
+    facebook::jsi::Value value = array->getValueAtIndex(runtime, index);
+    return std::make_unique<facebook::jsi::Value>(std::move(value));
+}
+
+inline void array_set_value_at_index(
+    facebook::jsi::Runtime& runtime,
+    const std::unique_ptr<facebook::jsi::Array>& array,
+    size_t index,
+    const std::unique_ptr<facebook::jsi::Value>& value) {
+    array->setValueAtIndex(runtime, index, facebook::jsi::Value(runtime, *value));
+}
+
+inline size_t array_size(
+    facebook::jsi::Runtime& runtime,
+    const std::unique_ptr<facebook::jsi::Array>& array) {
+    return array->size(runtime);
+}
+
 } // namespace jsi_rs
