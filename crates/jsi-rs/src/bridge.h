@@ -63,6 +63,10 @@ inline rust::String string_to_utf8(facebook::jsi::Runtime& runtime, const std::u
     return rust::String(str->utf8(runtime));
 }
 
+inline rust::String propnameid_to_utf8(facebook::jsi::Runtime& runtime, const std::unique_ptr<facebook::jsi::PropNameID>& propnameid) {
+    return rust::String(propnameid->utf8(runtime));
+}
+
 inline std::unique_ptr<facebook::jsi::String> bigint_to_string(
     facebook::jsi::Runtime& runtime,
     const std::unique_ptr<facebook::jsi::BigInt>& bigint,

@@ -145,6 +145,12 @@ pub mod ffi {
         fn string_to_utf8(runtime: Pin<&mut JSIRuntime>, str: &UniquePtr<JSIString>) -> String;
 
         #[namespace = "jsi_rs"]
+        fn propnameid_to_utf8(
+            runtime: Pin<&mut JSIRuntime>,
+            propnameid: &UniquePtr<JSIPropNameID>,
+        ) -> String;
+
+        #[namespace = "jsi_rs"]
         fn bigint_to_string(
             runtime: Pin<&mut JSIRuntime>,
             bigint: &UniquePtr<JSIBigInt>,

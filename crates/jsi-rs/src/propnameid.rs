@@ -12,6 +12,10 @@ impl JSPropNameID {
         Self { inner: ptr }
     }
 
+    pub fn value(&self, runtime: &mut JSRuntime) -> String {
+        crate::sys::ffi::propnameid_to_utf8(runtime.pin_mut(), &self.inner)
+    }
+
     /// Access the inner UniquePtr for advanced usage
     #[cfg(feature = "unsafe")]
     pub fn inner(&self) -> &cxx::UniquePtr<crate::sys::ffi::JSIPropNameID> {

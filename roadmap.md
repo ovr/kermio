@@ -119,7 +119,7 @@ class PropNameID {
 };
 ```
 
-**Status:** ✅ Exposed in jsi-rs as `JSPropNameID::new()` (UTF-8 only)
+**Status:** ✅ Exposed in jsi-rs as `JSPropNameID::new()` and `JSPropNameID::value()` (UTF-8 only)
 
 #### Symbol
 
