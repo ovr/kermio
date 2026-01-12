@@ -7,12 +7,12 @@ pub struct JSString {
 
 impl JSString {
     /// Create a new JavaScript string from UTF-8 data
-    pub fn new(runtime: &mut JSRuntime, data: &str) -> Self {
+    pub fn new(runtime: &mut JSRuntime<'_>, data: &str) -> Self {
         let ptr = crate::sys::ffi::create_string_from_utf8(runtime.pin_mut(), data);
         Self { inner: ptr }
     }
 
-    pub fn value(&self, runtime: &mut JSRuntime) -> String {
+    pub fn value(&self, runtime: &mut JSRuntime<'_>) -> String {
         crate::sys::ffi::string_to_utf8(runtime.pin_mut(), &self.inner)
     }
 
