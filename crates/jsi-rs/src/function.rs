@@ -9,7 +9,7 @@ pub struct JSFunction {
 
 impl JSFunction {
     /// Call the function with the given arguments
-    pub fn call(&self, runtime: &mut JSRuntime, args: &[JSValue]) -> Result<JSValue, String> {
+    pub fn call(&self, runtime: &mut JSRuntime<'_>, args: &[JSValue]) -> Result<JSValue, String> {
         let mut vec = ffi::value_vec_create();
         for arg in args {
             ffi::value_vec_push(vec.pin_mut(), runtime.pin_mut(), arg.inner());
@@ -23,7 +23,7 @@ impl JSFunction {
     /// Call the function with explicit 'this' object
     pub fn call_with_this(
         &self,
-        runtime: &mut JSRuntime,
+        runtime: &mut JSRuntime<'_>,
         this_obj: &crate::JSObject,
         args: &[JSValue],
     ) -> Result<JSValue, String> {
@@ -45,7 +45,7 @@ impl JSFunction {
     /// Call the function as a constructor (using 'new')
     pub fn call_as_constructor(
         &self,
-        runtime: &mut JSRuntime,
+        runtime: &mut JSRuntime<'_>,
         args: &[JSValue],
     ) -> Result<JSValue, String> {
         let mut vec = ffi::value_vec_create();

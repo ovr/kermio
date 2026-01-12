@@ -1,31 +1,36 @@
+use std::marker::PhantomData;
 use std::pin::Pin;
 
 use crate::sys::ffi;
 
 pub trait IntoJSIBigInt {
-    fn create_jsi_bigint(self, runtime: &mut JSRuntime) -> crate::JSBigInt;
+    fn create_jsi_bigint(self, runtime: &mut JSRuntime<'_>) -> crate::JSBigInt;
 }
 
 impl IntoJSIBigInt for i64 {
-    fn create_jsi_bigint(self, runtime: &mut JSRuntime) -> crate::JSBigInt {
+    fn create_jsi_bigint(self, runtime: &mut JSRuntime<'_>) -> crate::JSBigInt {
         crate::JSBigInt::from_i64(runtime, self)
     }
 }
 
 impl IntoJSIBigInt for u64 {
-    fn create_jsi_bigint(self, runtime: &mut JSRuntime) -> crate::JSBigInt {
+    fn create_jsi_bigint(self, runtime: &mut JSRuntime<'_>) -> crate::JSBigInt {
         crate::JSBigInt::from_u64(runtime, self)
     }
 }
 
 /// Wrapper around facebook::jsi::Runtime providing a safe Rust API
-pub struct JSRuntime {
+pub struct JSRuntime<'a> {
     pub(crate) ptr: *mut ffi::JSIRuntime,
+    _marker: PhantomData<&'a ()>,
 }
 
-impl JSRuntime {
+impl<'a> JSRuntime<'a> {
     pub unsafe fn from_raw(ptr: *mut ffi::JSIRuntime) -> Self {
-        Self { ptr }
+        Self {
+            ptr,
+            _marker: PhantomData,
+        }
     }
 
     pub(crate) fn pin_mut(&mut self) -> Pin<&mut ffi::JSIRuntime> {
@@ -53,7 +58,9 @@ impl JSRuntime {
     pub fn create_number(value: f64) -> crate::JSValue {
         crate::JSValue::number(value)
     }
+}
 
+impl<'a> JSRuntime<'a> {
     pub fn create_string(&mut self, data: &str) -> crate::JSString {
         crate::JSString::new(self, data)
     }
@@ -81,7 +88,7 @@ impl JSRuntime {
 
 // JSRuntime is Send but not Sync
 // JavaScript runtimes are typically single-threaded
-unsafe impl Send for JSRuntime {}
+unsafe impl<'a> Send for JSRuntime<'a> {}
 
 #[cfg(test)]
 mod tests {}

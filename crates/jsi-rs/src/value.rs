@@ -76,7 +76,7 @@ impl JSValue {
         self.as_ref().isBigInt()
     }
 
-    pub fn as_function(&self, runtime: &mut crate::JSRuntime) -> Option<crate::JSFunction> {
+    pub fn as_function(&self, runtime: &mut crate::JSRuntime<'_>) -> Option<crate::JSFunction> {
         if !self.is_object() {
             return None;
         }
@@ -95,7 +95,7 @@ impl JSValue {
         crate::sys::ffi::value_as_number(self.inner())
     }
 
-    pub fn as_string(&self, runtime: &mut crate::JSRuntime) -> Option<crate::JSString> {
+    pub fn as_string(&self, runtime: &mut crate::JSRuntime<'_>) -> Option<crate::JSString> {
         if !self.is_string() {
             return None;
         }
@@ -105,7 +105,7 @@ impl JSValue {
         Some(crate::JSString { inner: str })
     }
 
-    pub fn as_bigint(&self, runtime: &mut crate::JSRuntime) -> Option<crate::JSBigInt> {
+    pub fn as_bigint(&self, runtime: &mut crate::JSRuntime<'_>) -> Option<crate::JSBigInt> {
         if !self.is_bigint() {
             return None;
         }

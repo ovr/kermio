@@ -7,12 +7,12 @@ pub struct JSArray {
 
 impl JSArray {
     /// Create a new JavaScript array with the specified length
-    pub fn new(runtime: &mut JSRuntime, length: usize) -> Self {
+    pub fn new(runtime: &mut JSRuntime<'_>, length: usize) -> Self {
         let ptr = crate::sys::ffi::create_array(runtime.pin_mut(), length);
         Self { inner: ptr }
     }
 
-    pub fn get(&self, runtime: &mut JSRuntime, index: usize) -> crate::JSValue {
+    pub fn get(&self, runtime: &mut JSRuntime<'_>, index: usize) -> crate::JSValue {
         if index >= self.len(runtime) {
             return crate::JSValue::undefined();
         }
@@ -24,7 +24,7 @@ impl JSArray {
 
     pub fn set(
         &self,
-        runtime: &mut JSRuntime,
+        runtime: &mut JSRuntime<'_>,
         index: usize,
         value: &crate::JSValue,
     ) -> Result<(), String> {
@@ -45,11 +45,11 @@ impl JSArray {
         Ok(())
     }
 
-    pub fn len(&self, runtime: &mut JSRuntime) -> usize {
+    pub fn len(&self, runtime: &mut JSRuntime<'_>) -> usize {
         crate::sys::ffi::array_size(runtime.pin_mut(), &self.inner)
     }
 
-    pub fn is_empty(&self, runtime: &mut JSRuntime) -> bool {
+    pub fn is_empty(&self, runtime: &mut JSRuntime<'_>) -> bool {
         self.len(runtime) == 0
     }
 

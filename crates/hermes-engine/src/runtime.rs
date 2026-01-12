@@ -76,7 +76,7 @@ impl Runtime {
     /// let mut jsi_runtime = runtime.jsi();
     /// # Ok::<(), Box<dyn std::error::Error>>(())
     /// ```
-    pub fn jsi(&mut self) -> jsi_rs::JSRuntime {
+    pub fn jsi(&mut self) -> jsi_rs::JSRuntime<'_> {
         unsafe {
             let mut jsi_ref = ffi::get_jsi_runtime(self.handle.pin_mut());
             let ptr = jsi_ref.as_mut().get_unchecked_mut();
