@@ -3,12 +3,30 @@
 
 #include "rust/cxx.h"
 #include <hermes/hermes.h>
-#include <hermes-vendor/API/hermes/CompileJS.h>
+#include <hermes/CompileJS.h>
 #include <hermes/Public/RuntimeConfig.h>
 #include <jsi/jsi.h>
 #include <memory>
 #include <string>
 #include <stdexcept>
+
+// Non-owning buffer for zero-copy bytecode evaluation
+class BorrowedBuffer : public facebook::jsi::Buffer {
+public:
+    BorrowedBuffer(const uint8_t* data, size_t size) : data_(data), size_(size) {}
+    size_t size() const override { return size_; }
+    const uint8_t* data() const override { return data_; }
+private:
+    const uint8_t* data_;
+    size_t size_;
+};
+
+// Wrapper for compiled Hermes bytecode
+struct CompiledBytecode {
+    std::string data;
+    
+    explicit CompiledBytecode(std::string bytecode) : data(std::move(bytecode)) {}
+};
 
 // Create RuntimeConfig with custom settings
 inline std::unique_ptr<::hermes::vm::RuntimeConfig> create_runtime_config(
@@ -92,8 +110,8 @@ inline std::unique_ptr<facebook::jsi::Value> eval_js(
     }
 }
 
-// Compile JavaScript to bytecode
-inline rust::Vec<uint8_t> compile_js_to_bytecode(
+// Compile JavaScript to bytecode - returns CompiledBytecode wrapper
+inline std::unique_ptr<CompiledBytecode> compile_js_to_bytecode(
     rust::Str source,
     rust::Str source_url,
     bool optimize) {
@@ -112,12 +130,7 @@ inline rust::Vec<uint8_t> compile_js_to_bytecode(
         throw std::runtime_error("Failed to compile JavaScript to bytecode");
     }
 
-    // Convert std::string to rust::Vec<uint8_t>
-    rust::Vec<uint8_t> result;
-    for (char c : bytecode) {
-        result.push_back(static_cast<uint8_t>(c));
-    }
-    return result;
+    return std::make_unique<CompiledBytecode>(std::move(bytecode));
 }
 
 // Get bytecode version
@@ -127,24 +140,21 @@ inline uint32_t get_bytecode_version() {
     return 96; // Hermes 0.12.0+ uses version 96
 }
 
-// Evaluate bytecode
+// Evaluate bytecode - zero copy using BorrowedBuffer
 inline void eval_bytecode(
     facebook::hermes::HermesRuntime& runtime,
-    rust::Slice<const uint8_t> bytecode) {
+    const CompiledBytecode& bytecode) {
 
-    if (bytecode.empty()) {
+    if (bytecode.data.empty()) {
         throw std::runtime_error("Invalid bytecode buffer");
     }
 
     try {
-        // Convert bytecode to string buffer
-        std::string bytecode_str(
-            reinterpret_cast<const char*>(bytecode.data()),
-            bytecode.size());
+        auto buffer = std::make_shared<BorrowedBuffer>(
+            reinterpret_cast<const uint8_t*>(bytecode.data.data()),
+            bytecode.data.size());
 
-        runtime.evaluateJavaScript(
-            std::make_unique<facebook::jsi::StringBuffer>(bytecode_str),
-            "bundle");
+        runtime.evaluateJavaScript(buffer, "bundle");
     } catch (const facebook::jsi::JSError& e) {
         std::string error_msg = "JSError: " + e.getMessage();
         throw std::runtime_error(error_msg);
@@ -203,6 +213,24 @@ inline std::unique_ptr<facebook::jsi::Value> evaluate_prepared_javascript(
         std::string error_msg = "Error: " + std::string(e.what());
         throw std::runtime_error(error_msg);
     }
+}
+
+// Create CompiledBytecode from raw bytes (for loading from disk)
+inline std::unique_ptr<CompiledBytecode> create_compiled_bytecode(
+    rust::Slice<const uint8_t> data) {
+
+    std::string bytecode(reinterpret_cast<const char*>(data.data()), data.size());
+    return std::make_unique<CompiledBytecode>(std::move(bytecode));
+}
+
+// Get pointer to bytecode data - zero copy
+inline const uint8_t* compiled_bytecode_data(const CompiledBytecode& bytecode) {
+    return reinterpret_cast<const uint8_t*>(bytecode.data.data());
+}
+
+// Get bytecode size
+inline size_t compiled_bytecode_size(const CompiledBytecode& bytecode) {
+    return bytecode.data.size();
 }
 
 #endif // HERMES_ENGINE_WRAPPER_H

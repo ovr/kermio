@@ -18,6 +18,37 @@ pub struct PreparedJavaScript {
     handle: SharedPtr<ffi::PreparedJavaScript>,
 }
 
+/// Pre-compiled Hermes bytecode ready for execution.
+///
+/// Created via `Runtime::compile_to_bytecode()`. Can be executed using
+/// `Runtime::eval_bytecode()`. Supports serialization via `as_bytes()`
+/// and deserialization via `from_bytes()` for caching compiled bytecode.
+pub struct CompiledBytecode {
+    handle: UniquePtr<ffi::CompiledBytecode>,
+}
+
+impl CompiledBytecode {
+    pub fn as_bytes(&self) -> &[u8] {
+        let ptr = ffi::compiled_bytecode_data(&self.handle);
+        let len = ffi::compiled_bytecode_size(&self.handle);
+        unsafe { std::slice::from_raw_parts(ptr, len) }
+    }
+
+    pub fn from_bytes(data: &[u8]) -> Self {
+        Self {
+            handle: ffi::create_compiled_bytecode(data),
+        }
+    }
+
+    pub fn len(&self) -> usize {
+        ffi::compiled_bytecode_size(&self.handle)
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.len() == 0
+    }
+}
+
 /// A Hermes JavaScript runtime instance.
 pub struct Runtime {
     handle: UniquePtr<ffi::HermesRuntime>,
@@ -31,27 +62,11 @@ impl Runtime {
     }
 
     /// Evaluate JavaScript code.
-    ///
-    /// # Arguments
-    /// * `source` - The JavaScript source code to evaluate
-    /// * `source_url` - Optional URL/name for the source (used in error messages)
-    ///
-    /// # Returns
-    /// * `Ok(())` on success
-    /// * `Err(Error)` with error details on failure
     pub fn eval(&mut self, source: &str, source_url: Option<&str>) -> Result<()> {
         self.eval_with_result(source, source_url).map(|_| ())
     }
 
     /// Evaluate JavaScript code and return the result.
-    ///
-    /// # Arguments
-    /// * `source` - The JavaScript source code to evaluate
-    /// * `source_url` - Optional URL/name for the source (used in error messages)
-    ///
-    /// # Returns
-    /// * `Ok(JSValue)` with the result value
-    /// * `Err(Error)` with error details on failure
     pub fn eval_with_result(&mut self, source: &str, source_url: Option<&str>) -> Result<JSValue> {
         let url = source_url.unwrap_or("eval");
 
@@ -125,29 +140,15 @@ impl Runtime {
     }
 
     /// Compile JavaScript source to Hermes bytecode.
-    ///
-    /// # Arguments
-    /// * `source` - JavaScript source code
-    /// * `source_url` - Optional URL/name for error messages
-    ///
-    /// # Returns
-    /// * `Ok(Vec<u8>)` with bytecode on success
-    /// * `Err(Error)` with error details on failure
-    pub fn compile_to_bytecode(source: &str, source_url: Option<&str>) -> Result<Vec<u8>> {
+    pub fn compile_to_bytecode(source: &str, source_url: Option<&str>) -> Result<CompiledBytecode> {
         let url = source_url.unwrap_or("bundle");
-        Ok(ffi::compile_js_to_bytecode(source, url, true)?)
+        let handle = ffi::compile_js_to_bytecode(source, url, true)?;
+        Ok(CompiledBytecode { handle })
     }
 
     /// Evaluate pre-compiled Hermes bytecode.
-    ///
-    /// # Arguments
-    /// * `bytecode` - Hermes bytecode buffer
-    ///
-    /// # Returns
-    /// * `Ok(())` on success
-    /// * `Err(Error)` with error details on failure
-    pub fn eval_bytecode(&mut self, bytecode: &[u8]) -> Result<()> {
-        Ok(ffi::eval_bytecode(self.handle.pin_mut(), bytecode)?)
+    pub fn eval_bytecode(&mut self, bytecode: &CompiledBytecode) -> Result<()> {
+        Ok(ffi::eval_bytecode(self.handle.pin_mut(), &bytecode.handle)?)
     }
 
     /// Prepare JavaScript code for optimized repeated execution.
@@ -156,14 +157,6 @@ impl Runtime {
     /// object that can be executed multiple times efficiently. This is useful when you
     /// need to run the same code repeatedly, as the preparation cost is amortized across
     /// all executions.
-    ///
-    /// # Arguments
-    /// * `source` - JavaScript source code to prepare
-    /// * `source_url` - Optional URL/name for the source (used in error messages)
-    ///
-    /// # Returns
-    /// * `Ok(PreparedJavaScript)` - Prepared JavaScript ready for execution
-    /// * `Err(Error)` - Error details if preparation fails
     ///
     /// # Example
     /// ```no_run
@@ -192,13 +185,6 @@ impl Runtime {
     /// Executes JavaScript code that was previously prepared using `prepare_javascript()`.
     /// This is more efficient than calling `eval_with_result()` repeatedly with the same
     /// source code, as the parsing and optimization has already been done.
-    ///
-    /// # Arguments
-    /// * `prepared` - The prepared JavaScript to execute
-    ///
-    /// # Returns
-    /// * `Ok(JSValue)` - The result of executing the prepared code
-    /// * `Err(Error)` - Error details if execution fails
     ///
     /// # Example
     /// ```no_run

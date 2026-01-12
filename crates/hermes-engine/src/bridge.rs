@@ -18,6 +18,9 @@ pub mod ffi {
         #[namespace = "facebook::jsi"]
         type PreparedJavaScript;
 
+        // CompiledBytecode - maps to CompiledBytecode in wrapper.h
+        type CompiledBytecode;
+
         // JSI Value - maps to facebook::jsi::Value
         // We use the same type name as jsi-rs for consistency
         #[namespace = "facebook::jsi"]
@@ -61,10 +64,13 @@ pub mod ffi {
             source: &str,
             source_url: &str,
             optimize: bool,
-        ) -> Result<Vec<u8>>;
+        ) -> Result<UniquePtr<CompiledBytecode>>;
 
         // Evaluate bytecode
-        fn eval_bytecode(runtime: Pin<&mut HermesRuntime>, bytecode: &[u8]) -> Result<()>;
+        fn eval_bytecode(
+            runtime: Pin<&mut HermesRuntime>,
+            bytecode: &CompiledBytecode,
+        ) -> Result<()>;
 
         // Get the underlying JSI runtime (upcast HermesRuntime to jsi::Runtime base class)
         fn get_jsi_runtime(runtime: Pin<&mut HermesRuntime>) -> Pin<&mut JSIRuntime>;
@@ -81,5 +87,14 @@ pub mod ffi {
             runtime: Pin<&mut HermesRuntime>,
             prepared: &SharedPtr<PreparedJavaScript>,
         ) -> Result<UniquePtr<JSIValue>>;
+
+        // Create CompiledBytecode from raw bytes (for loading saved bytecode)
+        fn create_compiled_bytecode(data: &[u8]) -> UniquePtr<CompiledBytecode>;
+
+        // Get pointer to bytecode data - zero copy
+        fn compiled_bytecode_data(bytecode: &CompiledBytecode) -> *const u8;
+
+        // Get bytecode size
+        fn compiled_bytecode_size(bytecode: &CompiledBytecode) -> usize;
     }
 }

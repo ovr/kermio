@@ -11,7 +11,7 @@ mod config;
 pub use config::{RuntimeConfig, RuntimeConfigBuilder};
 
 mod runtime;
-pub use runtime::{PreparedJavaScript, Runtime};
+pub use runtime::{CompiledBytecode, PreparedJavaScript, Runtime};
 
 #[cfg(test)]
 mod tests {
@@ -19,186 +19,207 @@ mod tests {
     use crate::config::RuntimeConfig;
 
     #[test]
-    fn test_eval_simple() {
-        let mut runtime = Runtime::new(RuntimeConfig::default()).expect("Failed to create runtime");
-        runtime.eval("2 + 2", None).expect("Failed to evaluate");
+    fn test_eval_simple() -> Result<()> {
+        let mut runtime = Runtime::new(RuntimeConfig::default())?;
+        runtime.eval("2 + 2", None)?;
+        Ok(())
     }
 
     #[test]
-    fn test_eval_error() {
-        let mut runtime = Runtime::new(RuntimeConfig::default()).expect("Failed to create runtime");
+    fn test_eval_error() -> Result<()> {
+        let mut runtime = Runtime::new(RuntimeConfig::default())?;
         let result = runtime.eval("throw new Error('test error')", None);
         assert!(result.is_err());
-        assert!(result.unwrap_err().contains("test error"));
+        let err = result.unwrap_err();
+        assert!(err.contains("test error"));
+        Ok(())
     }
 
     #[test]
-    fn test_eval_with_result_number() {
-        let mut runtime = Runtime::new(RuntimeConfig::default()).expect("Failed to create runtime");
-        let result = runtime
-            .eval_with_result("2 + 2", None)
-            .expect("Failed to evaluate");
+    fn test_eval_with_result_number() -> Result<()> {
+        let mut runtime = Runtime::new(RuntimeConfig::default())?;
+        let result = runtime.eval_with_result("2 + 2", None)?;
         assert!(result.is_number());
+        Ok(())
     }
 
     #[test]
-    fn test_eval_with_result_string() {
-        let mut runtime = Runtime::new(RuntimeConfig::default()).expect("Failed to create runtime");
-        let result = runtime
-            .eval_with_result("'hello'", None)
-            .expect("Failed to evaluate");
+    fn test_eval_with_result_string() -> Result<()> {
+        let mut runtime = Runtime::new(RuntimeConfig::default())?;
+        let result = runtime.eval_with_result("'hello'", None)?;
         assert!(result.is_string());
+        Ok(())
     }
 
     #[test]
-    fn test_eval_with_result_bool() {
-        let mut runtime = Runtime::new(RuntimeConfig::default()).expect("Failed to create runtime");
-        let result = runtime
-            .eval_with_result("true", None)
-            .expect("Failed to evaluate");
+    fn test_eval_with_result_bool() -> Result<()> {
+        let mut runtime = Runtime::new(RuntimeConfig::default())?;
+        let result = runtime.eval_with_result("true", None)?;
         assert!(result.is_bool());
+        Ok(())
     }
 
     #[test]
-    fn test_eval_with_result_null() {
-        let mut runtime = Runtime::new(RuntimeConfig::default()).expect("Failed to create runtime");
-        let result = runtime
-            .eval_with_result("null", None)
-            .expect("Failed to evaluate");
+    fn test_eval_with_result_null() -> Result<()> {
+        let mut runtime = Runtime::new(RuntimeConfig::default())?;
+        let result = runtime.eval_with_result("null", None)?;
         assert!(result.is_null());
+        Ok(())
     }
 
     #[test]
-    fn test_eval_with_result_undefined() {
-        let mut runtime = Runtime::new(RuntimeConfig::default()).expect("Failed to create runtime");
-        let result = runtime
-            .eval_with_result("undefined", None)
-            .expect("Failed to evaluate");
+    fn test_eval_with_result_undefined() -> Result<()> {
+        let mut runtime = Runtime::new(RuntimeConfig::default())?;
+        let result = runtime.eval_with_result("undefined", None)?;
         assert!(result.is_undefined());
+        Ok(())
     }
 
     #[test]
-    fn test_eval_with_result_object() {
-        let mut runtime = Runtime::new(RuntimeConfig::default()).expect("Failed to create runtime");
-        let result = runtime
-            .eval_with_result("({foo: 'bar'})", None)
-            .expect("Failed to evaluate");
+    fn test_eval_with_result_object() -> Result<()> {
+        let mut runtime = Runtime::new(RuntimeConfig::default())?;
+        let result = runtime.eval_with_result("({foo: 'bar'})", None)?;
         assert!(result.is_object());
+        Ok(())
     }
 
     #[test]
-    fn test_runtime_config_builder() {
+    fn test_runtime_config_builder() -> Result<()> {
         let config = RuntimeConfigBuilder::new()
-            .heap_size(64 << 20, 512 << 20) // 64MB init, 512MB max
+            .heap_size(64 << 20, 512 << 20)
             .enable_eval(false)
             .enable_jit(false)
             .enable_es6_proxy(true)
             .build();
 
-        let mut runtime = Runtime::new(config).expect("Failed to create runtime");
+        let mut runtime = Runtime::new(config)?;
 
-        // Test that eval is disabled
         let result = runtime.eval("eval('1 + 1')", None);
         assert!(result.is_err());
+        Ok(())
     }
 
     #[test]
-    fn test_runtime_config_disable_generators() {
+    fn test_runtime_config_disable_generators() -> Result<()> {
         let config = RuntimeConfigBuilder::new().enable_generator(false).build();
 
-        let mut runtime = Runtime::new(config).expect("Failed to create runtime");
+        let mut runtime = Runtime::new(config)?;
 
-        // Test that generators are disabled
         let result = runtime.eval("function* gen() { yield 1; }", None);
         assert!(result.is_err());
+        Ok(())
     }
 
     #[test]
-    fn test_runtime_config_heap_settings() {
+    fn test_runtime_config_heap_settings() -> Result<()> {
         let config = RuntimeConfigBuilder::new()
-            .heap_size(16 << 20, 32 << 20) // 16MB init, 32MB max
+            .heap_size(16 << 20, 32 << 20)
             .build();
 
-        let runtime = Runtime::new(config).expect("Failed to create runtime with heap settings");
+        let runtime = Runtime::new(config)?;
         drop(runtime);
+        Ok(())
     }
 
     #[test]
-    fn test_prepare_javascript() {
-        let mut runtime = Runtime::new(RuntimeConfig::default()).expect("Failed to create runtime");
+    fn test_prepare_javascript() -> Result<()> {
+        let mut runtime = Runtime::new(RuntimeConfig::default())?;
 
-        let prepared = runtime
-            .prepare_javascript("2 + 2", Some("calc.js"))
-            .expect("Failed to prepare JavaScript");
+        let prepared = runtime.prepare_javascript("2 + 2", Some("calc.js"))?;
 
-        let result = runtime
-            .evaluate_prepared_javascript(&prepared)
-            .expect("Failed to evaluate prepared JavaScript");
+        let result = runtime.evaluate_prepared_javascript(&prepared)?;
 
         assert!(result.is_number());
+        Ok(())
     }
 
     #[test]
-    fn test_prepare_javascript_multiple_executions() {
-        let mut runtime = Runtime::new(RuntimeConfig::default()).expect("Failed to create runtime");
+    fn test_prepare_javascript_multiple_executions() -> Result<()> {
+        let mut runtime = Runtime::new(RuntimeConfig::default())?;
 
-        let prepared = runtime
-            .prepare_javascript("Math.random()", None)
-            .expect("Failed to prepare JavaScript");
+        let prepared = runtime.prepare_javascript("Math.random()", None)?;
 
-        // Execute multiple times - should work each time
-        let result1 = runtime
-            .evaluate_prepared_javascript(&prepared)
-            .expect("First execution failed");
+        let result1 = runtime.evaluate_prepared_javascript(&prepared)?;
         assert!(result1.is_number());
 
-        let result2 = runtime
-            .evaluate_prepared_javascript(&prepared)
-            .expect("Second execution failed");
+        let result2 = runtime.evaluate_prepared_javascript(&prepared)?;
         assert!(result2.is_number());
 
-        let result3 = runtime
-            .evaluate_prepared_javascript(&prepared)
-            .expect("Third execution failed");
+        let result3 = runtime.evaluate_prepared_javascript(&prepared)?;
         assert!(result3.is_number());
+        Ok(())
     }
 
     #[test]
-    fn test_prepare_javascript_with_string() {
-        let mut runtime = Runtime::new(RuntimeConfig::default()).expect("Failed to create runtime");
+    fn test_prepare_javascript_with_string() -> Result<()> {
+        let mut runtime = Runtime::new(RuntimeConfig::default())?;
 
-        let prepared = runtime
-            .prepare_javascript("'hello ' + 'world'", None)
-            .expect("Failed to prepare JavaScript");
+        let prepared = runtime.prepare_javascript("'hello ' + 'world'", None)?;
 
-        let result = runtime
-            .evaluate_prepared_javascript(&prepared)
-            .expect("Failed to evaluate prepared JavaScript");
+        let result = runtime.evaluate_prepared_javascript(&prepared)?;
 
         assert!(result.is_string());
+        Ok(())
     }
 
     #[test]
-    fn test_prepare_javascript_syntax_error() {
-        let mut runtime = Runtime::new(RuntimeConfig::default()).expect("Failed to create runtime");
+    fn test_prepare_javascript_syntax_error() -> Result<()> {
+        let mut runtime = Runtime::new(RuntimeConfig::default())?;
 
         let result = runtime.prepare_javascript("this is invalid javascript", None);
         assert!(result.is_err());
+        Ok(())
     }
 
     #[test]
-    fn test_prepare_javascript_runtime_error() {
-        let mut runtime = Runtime::new(RuntimeConfig::default()).expect("Failed to create runtime");
+    fn test_prepare_javascript_runtime_error() -> Result<()> {
+        let mut runtime = Runtime::new(RuntimeConfig::default())?;
 
-        // Preparation should succeed (syntax is valid)
-        let prepared = runtime
-            .prepare_javascript("throw new Error('test error')", None)
-            .expect("Failed to prepare JavaScript");
+        let prepared = runtime.prepare_javascript("throw new Error('test error')", None)?;
 
-        // But execution should fail
         match runtime.evaluate_prepared_javascript(&prepared) {
             Ok(_) => panic!("Expected error but got success"),
             Err(error_msg) => assert!(error_msg.contains("test error")),
         }
+        Ok(())
+    }
+
+    #[test]
+    fn test_compile_and_eval_bytecode() -> Result<()> {
+        let mut runtime = Runtime::new(RuntimeConfig::default())?;
+
+        let bytecode = Runtime::compile_to_bytecode("2 + 2", Some("calc.js"))?;
+
+        runtime.eval_bytecode(&bytecode)?;
+        Ok(())
+    }
+
+    #[test]
+    fn test_bytecode_roundtrip() -> Result<()> {
+        let mut runtime = Runtime::new(RuntimeConfig::default())?;
+
+        let bytecode = Runtime::compile_to_bytecode("'hello world'", None)?;
+
+        let bytes = bytecode.as_bytes();
+        let bytecode2 = CompiledBytecode::from_bytes(bytes);
+
+        runtime.eval_bytecode(&bytecode2)?;
+        // Tests multiple evaluations, nothing should crash
+        runtime.eval_bytecode(&bytecode)?;
+        runtime.eval_bytecode(&bytecode)?;
+
+        Ok(())
+    }
+
+    #[test]
+    fn test_bytecode_size() -> Result<()> {
+        let bytecode = Runtime::compile_to_bytecode("const x = 42;", None)?;
+
+        assert!(!bytecode.is_empty());
+        assert!(bytecode.len() > 0);
+
+        let bytes = bytecode.as_bytes();
+        assert_eq!(bytes.len(), bytecode.len());
+        Ok(())
     }
 }
