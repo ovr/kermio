@@ -206,5 +206,40 @@ pub mod ffi {
 
         #[namespace = "jsi_rs"]
         fn array_size(runtime: Pin<&mut JSIRuntime>, array: &UniquePtr<JSIArray>) -> usize;
+
+        #[namespace = "jsi_rs"]
+        fn object_get_property(
+            runtime: Pin<&mut JSIRuntime>,
+            obj: &UniquePtr<JSIObject>,
+            name: &str,
+        ) -> UniquePtr<JSIValue>;
+
+        #[namespace = "jsi_rs"]
+        fn object_set_property(
+            runtime: Pin<&mut JSIRuntime>,
+            obj: &UniquePtr<JSIObject>,
+            name: &str,
+            value: &UniquePtr<JSIValue>,
+        );
+
+        #[namespace = "jsi_rs"]
+        fn object_has_property(
+            runtime: Pin<&mut JSIRuntime>,
+            obj: &UniquePtr<JSIObject>,
+            name: &str,
+        ) -> bool;
+
+        #[namespace = "jsi_rs"]
+        fn object_delete_property(
+            runtime: Pin<&mut JSIRuntime>,
+            obj: &UniquePtr<JSIObject>,
+            name: &str,
+        );
+
+        #[namespace = "jsi_rs"]
+        fn object_get_property_names(
+            runtime: Pin<&mut JSIRuntime>,
+            obj: &UniquePtr<JSIObject>,
+        ) -> UniquePtr<JSIArray>;
     }
 }

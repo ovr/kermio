@@ -278,7 +278,7 @@ class Object {
 };
 ```
 
-**Status:** ✅ Exposed in jsi-rs as `JSObject::new()` (basic creation only)
+**Status:** ✅ Exposed in jsi-rs as `JSObject::new()`, `get()`, `set()`, `has()`, `delete()`, `get_property_names()`
 
 #### WeakObject
 
@@ -924,6 +924,11 @@ Low-level JSI bindings:
 
 ✅ **JSObject**
 - `JSObject::new(runtime)` - Create empty object
+- `JSObject::get(runtime, name)` - Get property value by name
+- `JSObject::set(runtime, name, value)` - Set property value by name
+- `JSObject::has(runtime, name)` - Check if property exists
+- `JSObject::delete(runtime, name)` - Delete property (sets to undefined)
+- `JSObject::get_property_names(runtime)` - Get array of property names
 
 ✅ **JSArray**
 - `JSArray::new(runtime, length)` - Create array with length
@@ -1299,7 +1304,7 @@ impl Runtime {
 - ✅ **Value type checking** - All JSValue type checks
 - ✅ **Basic object/array/string/function/bigint creation** - Factory methods only
 - ⚠️ **Value extraction** - String and BigInt extraction implemented, but other JSValue extraction missing
-- ❌ **Property access** - Can't read/write object properties
+- ✅ **Property access** - get/set/has/delete/get_property_names implemented
 - ✅ **Function calls** - call(), call_with_this(), call_as_constructor() implemented
 - ❌ **Host interop** - Can't expose Rust to JavaScript
 - ❌ **Advanced features** - No buffers, weak refs, array buffers, etc.

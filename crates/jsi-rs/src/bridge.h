@@ -161,4 +161,47 @@ inline size_t array_size(
     return array->size(runtime);
 }
 
+// Object property operations
+
+inline std::unique_ptr<facebook::jsi::Value> object_get_property(
+    facebook::jsi::Runtime& runtime,
+    const std::unique_ptr<facebook::jsi::Object>& obj,
+    rust::Str name) {
+    std::string str(name.data(), name.size());
+    facebook::jsi::Value value = obj->getProperty(runtime, str.c_str());
+    return std::make_unique<facebook::jsi::Value>(std::move(value));
+}
+
+inline void object_set_property(
+    facebook::jsi::Runtime& runtime,
+    const std::unique_ptr<facebook::jsi::Object>& obj,
+    rust::Str name,
+    const std::unique_ptr<facebook::jsi::Value>& value) {
+    std::string str(name.data(), name.size());
+    obj->setProperty(runtime, str.c_str(), facebook::jsi::Value(runtime, *value));
+}
+
+inline bool object_has_property(
+    facebook::jsi::Runtime& runtime,
+    const std::unique_ptr<facebook::jsi::Object>& obj,
+    rust::Str name) {
+    std::string str(name.data(), name.size());
+    return obj->hasProperty(runtime, str.c_str());
+}
+
+inline void object_delete_property(
+    facebook::jsi::Runtime& runtime,
+    const std::unique_ptr<facebook::jsi::Object>& obj,
+    rust::Str name) {
+    std::string str(name.data(), name.size());
+    obj->setProperty(runtime, str.c_str(), facebook::jsi::Value::undefined());
+}
+
+inline std::unique_ptr<facebook::jsi::Array> object_get_property_names(
+    facebook::jsi::Runtime& runtime,
+    const std::unique_ptr<facebook::jsi::Object>& obj) {
+    facebook::jsi::Array names = obj->getPropertyNames(runtime);
+    return std::make_unique<facebook::jsi::Array>(std::move(names));
+}
+
 } // namespace jsi_rs
