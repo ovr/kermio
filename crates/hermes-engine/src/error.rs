@@ -124,3 +124,11 @@ impl From<cxx::Exception> for Error {
         }
     }
 }
+
+impl From<jsi_rs::Error> for Error {
+    fn from(e: jsi_rs::Error) -> Self {
+        let msg = e.message();
+
+        Error::InternalError(msg.to_string())
+    }
+}

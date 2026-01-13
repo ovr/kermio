@@ -1,3 +1,5 @@
+mod error;
+
 // Low-level FFI bindings - conditionally exposed via 'unsafe' feature
 #[cfg(not(feature = "unsafe"))]
 mod sys;
@@ -17,6 +19,7 @@ mod value;
 // Re-export public types
 pub use array::JSArray;
 pub use bigint::JSBigInt;
+pub use error::{Error, Result};
 pub use function::JSFunction;
 pub use object::JSObject;
 pub use propnameid::JSPropNameID;

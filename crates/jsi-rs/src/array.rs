@@ -1,4 +1,5 @@
 use crate::JSRuntime;
+use crate::{Error, Result};
 
 /// Wrapper around facebook::jsi::Array providing a safe Rust API
 pub struct JSArray {
@@ -27,13 +28,13 @@ impl JSArray {
         runtime: &mut JSRuntime<'_>,
         index: usize,
         value: &crate::JSValue,
-    ) -> Result<(), String> {
+    ) -> Result<()> {
         if index >= self.len(runtime) {
-            return Err(format!(
+            return Err(Error::new(format!(
                 "Index {} out of bounds for array of length {}",
                 index,
                 self.len(runtime)
-            ));
+            )));
         }
 
         crate::sys::ffi::array_set_value_at_index(

@@ -1,4 +1,4 @@
-use crate::{JSRuntime, JSString};
+use crate::{JSRuntime, JSString, Result};
 
 /// Wrapper around facebook::jsi::BigInt providing a safe Rust API
 pub struct JSBigInt {
@@ -18,20 +18,16 @@ impl JSBigInt {
         Self { inner: ptr }
     }
 
-    pub fn as_string_opt(
-        &self,
-        runtime: &mut JSRuntime<'_>,
-        radix: i32,
-    ) -> Result<JSString, cxx::Exception> {
+    pub fn as_string_opt(&self, runtime: &mut JSRuntime<'_>, radix: i32) -> Result<JSString> {
         let inner = crate::sys::ffi::bigint_to_string(runtime.pin_mut(), &self.inner, radix)?;
         Ok(JSString { inner })
     }
 
-    pub fn as_string(&self, runtime: &mut JSRuntime<'_>) -> Result<JSString, cxx::Exception> {
+    pub fn as_string(&self, runtime: &mut JSRuntime<'_>) -> Result<JSString> {
         self.as_string_opt(runtime, 10)
     }
 
-    pub fn to_string(&self, runtime: &mut JSRuntime<'_>) -> Result<String, cxx::Exception> {
+    pub fn to_string(&self, runtime: &mut JSRuntime<'_>) -> Result<String> {
         let js_string = self.as_string(runtime)?;
         Ok(js_string.value(runtime))
     }

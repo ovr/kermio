@@ -1,9 +1,9 @@
 mod tests {
     use hermes_engine::jsi::{JSArray, JSValue};
-    use hermes_engine::{Runtime, RuntimeConfig};
+    use hermes_engine::{Result, Runtime, RuntimeConfig};
 
     #[test]
-    fn test_jsarray_new() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_jsarray_new() -> Result<()> {
         let mut runtime = Runtime::new(RuntimeConfig::default())?;
         let mut jsi_runtime = runtime.jsi();
 
@@ -14,7 +14,7 @@ mod tests {
     }
 
     #[test]
-    fn test_jsarray_get_set() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_jsarray_get_set() -> Result<()> {
         let mut runtime = Runtime::new(RuntimeConfig::default())?;
         let mut jsi_runtime = runtime.jsi();
 
@@ -42,7 +42,7 @@ mod tests {
     }
 
     #[test]
-    fn test_jsarray_length() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_jsarray_length() -> Result<()> {
         let mut runtime = Runtime::new(RuntimeConfig::default())?;
         let mut jsi_runtime = runtime.jsi();
 
@@ -58,7 +58,7 @@ mod tests {
     }
 
     #[test]
-    fn test_jsarray_out_of_bounds() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_jsarray_out_of_bounds() -> Result<()> {
         let mut runtime = Runtime::new(RuntimeConfig::default())?;
         let mut jsi_runtime = runtime.jsi();
 

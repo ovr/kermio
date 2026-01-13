@@ -1,6 +1,7 @@
 use crate::sys::ffi;
 use crate::value::JSValue;
 use crate::JSRuntime;
+use crate::Result;
 
 /// Wrapper around facebook::jsi::Function providing a safe Rust API
 pub struct JSFunction {
@@ -9,13 +10,13 @@ pub struct JSFunction {
 
 impl JSFunction {
     /// Call the function with the given arguments
-    pub fn call(&self, runtime: &mut JSRuntime<'_>, args: &[JSValue]) -> Result<JSValue, String> {
+    pub fn call(&self, runtime: &mut JSRuntime<'_>, args: &[JSValue]) -> Result<JSValue> {
         let mut vec = ffi::value_vec_create();
         for arg in args {
             ffi::value_vec_push(vec.pin_mut(), runtime.pin_mut(), arg.inner());
         }
 
-        let result = ffi::function_call(runtime.pin_mut(), &self.inner, &vec);
+        let result = ffi::function_call(runtime.pin_mut(), &self.inner, &vec)?;
 
         Ok(JSValue { inner: result })
     }
@@ -26,7 +27,7 @@ impl JSFunction {
         runtime: &mut JSRuntime<'_>,
         this_obj: &crate::JSObject,
         args: &[JSValue],
-    ) -> Result<JSValue, String> {
+    ) -> Result<JSValue> {
         let mut vec = ffi::value_vec_create();
         for arg in args {
             ffi::value_vec_push(vec.pin_mut(), runtime.pin_mut(), arg.inner());
@@ -37,7 +38,7 @@ impl JSFunction {
             &self.inner,
             this_obj.inner.as_ref().expect("JSObject inner is null"),
             &vec,
-        );
+        )?;
 
         Ok(JSValue { inner: result })
     }
@@ -47,13 +48,13 @@ impl JSFunction {
         &self,
         runtime: &mut JSRuntime<'_>,
         args: &[JSValue],
-    ) -> Result<JSValue, String> {
+    ) -> Result<JSValue> {
         let mut vec = ffi::value_vec_create();
         for arg in args {
             ffi::value_vec_push(vec.pin_mut(), runtime.pin_mut(), arg.inner());
         }
 
-        let result = ffi::function_call_as_constructor(runtime.pin_mut(), &self.inner, &vec);
+        let result = ffi::function_call_as_constructor(runtime.pin_mut(), &self.inner, &vec)?;
 
         Ok(JSValue { inner: result })
     }

@@ -172,7 +172,7 @@ pub mod ffi {
             runtime: Pin<&mut JSIRuntime>,
             func: &UniquePtr<JSIFunction>,
             args: &ValueVec,
-        ) -> UniquePtr<JSIValue>;
+        ) -> Result<UniquePtr<JSIValue>>;
 
         #[namespace = "jsi_rs"]
         fn function_call_with_this(
@@ -180,14 +180,14 @@ pub mod ffi {
             func: &UniquePtr<JSIFunction>,
             this_obj: &JSIObject,
             args: &ValueVec,
-        ) -> UniquePtr<JSIValue>;
+        ) -> Result<UniquePtr<JSIValue>>;
 
         #[namespace = "jsi_rs"]
         fn function_call_as_constructor(
             runtime: Pin<&mut JSIRuntime>,
             func: &UniquePtr<JSIFunction>,
             args: &ValueVec,
-        ) -> UniquePtr<JSIValue>;
+        ) -> Result<UniquePtr<JSIValue>>;
 
         #[namespace = "jsi_rs"]
         fn array_get_value_at_index(

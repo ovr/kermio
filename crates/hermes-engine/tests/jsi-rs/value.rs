@@ -1,9 +1,9 @@
 mod tests {
     use hermes_engine::jsi::JSValue;
-    use hermes_engine::{Runtime, RuntimeConfig};
+    use hermes_engine::{Error, Result, Runtime, RuntimeConfig};
 
     #[test]
-    fn test_jsvalue_undefined() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_jsvalue_undefined() -> Result<()> {
         let _runtime = Runtime::new(RuntimeConfig::default())?;
 
         let value = JSValue::undefined();
@@ -14,7 +14,7 @@ mod tests {
     }
 
     #[test]
-    fn test_jsvalue_null() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_jsvalue_null() -> Result<()> {
         let _runtime = Runtime::new(RuntimeConfig::default())?;
 
         let value = JSValue::null();
@@ -25,7 +25,7 @@ mod tests {
     }
 
     #[test]
-    fn test_jsvalue_bool() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_jsvalue_bool() -> Result<()> {
         let _runtime = Runtime::new(RuntimeConfig::default())?;
 
         let value_true = JSValue::bool(true);
@@ -37,7 +37,7 @@ mod tests {
     }
 
     #[test]
-    fn test_jsvalue_number() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_jsvalue_number() -> Result<()> {
         let _runtime = Runtime::new(RuntimeConfig::default())?;
 
         let value = JSValue::number(42.5);
@@ -48,7 +48,7 @@ mod tests {
     }
 
     #[test]
-    fn test_jsvalue_as_bool() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_jsvalue_as_bool() -> Result<()> {
         let _runtime = Runtime::new(RuntimeConfig::default())?;
 
         let value_true = JSValue::bool(true);
@@ -60,7 +60,7 @@ mod tests {
     }
 
     #[test]
-    fn test_jsvalue_as_number() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_jsvalue_as_number() -> Result<()> {
         let _runtime = Runtime::new(RuntimeConfig::default())?;
 
         let value = JSValue::number(42.5);
@@ -70,20 +70,22 @@ mod tests {
     }
 
     #[test]
-    fn test_jsvalue_as_string() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_jsvalue_as_string() -> Result<()> {
         let mut runtime = Runtime::new(RuntimeConfig::default())?;
 
         let value = runtime.eval_with_result("String('hello world')", None)?;
 
         assert!(value.is_string());
 
-        let str_value = value.as_string(&mut runtime.jsi()).ok_or("Not a string")?;
+        let str_value = value
+            .as_string(&mut runtime.jsi())
+            .ok_or_else(|| Error::internal("Not a string"))?;
         assert_eq!(str_value.value(&mut runtime.jsi()), "hello world");
         Ok(())
     }
 
     #[test]
-    fn test_jsvalue_as_string_none() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_jsvalue_as_string_none() -> Result<()> {
         let mut runtime = Runtime::new(RuntimeConfig::default())?;
 
         let value = JSValue::number(42.0);
@@ -94,19 +96,21 @@ mod tests {
     }
 
     #[test]
-    fn test_jsvalue_as_bigint() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_jsvalue_as_bigint() -> Result<()> {
         let mut runtime = Runtime::new(RuntimeConfig::default())?;
 
         let value = runtime.eval_with_result("123n", None)?;
 
         assert!(value.is_bigint());
 
-        let _bigint_value = value.as_bigint(&mut runtime.jsi()).ok_or("Not a bigint")?;
+        let _bigint_value = value
+            .as_bigint(&mut runtime.jsi())
+            .ok_or_else(|| Error::internal("Not a bigint"))?;
         Ok(())
     }
 
     #[test]
-    fn test_jsvalue_as_bigint_none() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_jsvalue_as_bigint_none() -> Result<()> {
         let mut runtime = Runtime::new(RuntimeConfig::default())?;
 
         let value = JSValue::number(42.0);

@@ -1,9 +1,9 @@
 mod tests {
     use hermes_engine::jsi::JSValue;
-    use hermes_engine::{Runtime, RuntimeConfig};
+    use hermes_engine::{Error, Result, Runtime, RuntimeConfig};
 
     #[test]
-    fn test_jsfunction_call() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_jsfunction_call() -> Result<()> {
         let mut runtime = Runtime::new(RuntimeConfig::default())?;
 
         // Create a simple function in JavaScript
@@ -18,7 +18,7 @@ mod tests {
         let mut jsi_runtime = runtime.jsi();
         let add_func = add_value
             .as_function(&mut jsi_runtime)
-            .ok_or("add is not a function")?;
+            .ok_or_else(|| Error::internal("add is not a function"))?;
 
         // Call the function with arguments: add(5, 3)
         let args = vec![JSValue::number(5.0), JSValue::number(3.0)];
@@ -30,7 +30,7 @@ mod tests {
     }
 
     #[test]
-    fn test_jsfunction_call_as_constructor() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_jsfunction_call_as_constructor() -> Result<()> {
         let mut runtime = Runtime::new(RuntimeConfig::default())?;
 
         // Create a simple constructor in JavaScript
@@ -44,7 +44,7 @@ mod tests {
         let mut jsi_runtime = runtime.jsi();
         let point_func = point_value
             .as_function(&mut jsi_runtime)
-            .ok_or("Point is not a function")?;
+            .ok_or_else(|| Error::internal("Point is not a function"))?;
 
         // Call as constructor: new Point(10, 20)
         let args = vec![JSValue::number(10.0), JSValue::number(20.0)];
@@ -62,7 +62,7 @@ mod tests {
     }
 
     #[test]
-    fn test_jsfunction_no_conversion() -> Result<(), Box<dyn std::error::Error>> {
+    fn test_jsfunction_no_conversion() -> Result<()> {
         let mut runtime = Runtime::new(RuntimeConfig::default())?;
         let mut jsi_runtime = runtime.jsi();
 
